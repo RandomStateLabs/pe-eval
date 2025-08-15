@@ -1,0 +1,31 @@
+{
+  "models": {
+    "main": {
+      "id": "claude-3-5-sonnet-20241022",
+      "provider": "anthropic",
+      "description": "Primary model for task generation and updates"
+    },
+    "research": {
+      "id": "llama-3.1-sonar-large-128k-online",
+      "provider": "perplexity", 
+      "description": "Research model for enhanced context and analysis"
+    },
+    "fallback": {
+      "id": "gpt-4o-mini",
+      "provider": "openai",
+      "description": "Fallback model if primary fails"
+    }
+  },
+  "settings": {
+    "defaultLanguage": "English",
+    "rulesProfiles": ["cursor"],
+    "storeTasksInGit": true,
+    "initGit": true,
+    "addAliases": true
+  },
+  "projectMeta": {
+    "initialized": true,
+    "version": "1.0.0",
+    "lastUpdated": "2024-01-01T00:00:00.000Z"
+  }
+}

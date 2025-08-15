@@ -1,0 +1,33 @@
+{
+  "allowedTools": [
+    "Edit",
+    "MultiEdit", 
+    "Read",
+    "Write",
+    "Bash",
+    "Grep",
+    "Glob",
+    "LS",
+    "TodoWrite",
+    "Task",
+    "mcp__taskmaster-ai__*",
+    "mcp__github__*",
+    "mcp__sequential-thinking__*"
+  ],
+  "toolConfirmationLevel": "ask",
+  "hooks": {
+    "beforeToolUse": {
+      "enabled": false,
+      "command": ""
+    },
+    "afterToolUse": {
+      "enabled": false, 
+      "command": ""
+    }
+  },
+  "preferences": {
+    "codeStyle": "minimal-comments",
+    "verbosity": "concise",
+    "taskManagement": "todowrite-preferred"
+  }
+}

@@ -1,12 +1,13 @@
-# PE-Eval: AI Automation Development & Learning
+# PE-Eval: Private Equity AI Automation Platform
 
-Live documentation of building PE (Performance Engineering) AI automations while learning Claude Code and modern AI coding tools.
+Advanced AI-powered automation system for institutional private equity investment analysis, deal flow management, and portfolio monitoring.
 
 ## 🎯 Project Goals
 
-1. **Build PE Automations** - Create practical performance engineering automation tools
-2. **Learn AI Coding** - Document workflows with Claude Code, Cursor, and other AI tools  
-3. **Share Knowledge** - Create a public learning resource for AI-assisted development
+1. **Automate PE Analysis** - Build intelligent workflows for institutional investment analysis and due diligence
+2. **Streamline Deal Flow** - Automate company research, financial document processing, and investment recommendations  
+3. **AI-Powered Insights** - Leverage GPT-4, Claude, and other LLMs for sophisticated financial analysis
+4. **Enterprise Integration** - Connect with Google Drive, Gmail, web research APIs, and internal systems
 
 ## 🛠 Setup Instructions
 
@@ -130,17 +131,44 @@ ln -s ~/.ai-tool-configs/pe-eval/settings.json .claude/settings.json
 - Note tool integration discoveries
 - Share troubleshooting solutions
 
+## 📊 Core n8n Workflow: Institutional PE Analysis
+
+### Workflow ID: EdcGmkQjHRqhcRIX
+The main workflow automates comprehensive private equity investment analysis:
+
+1. **Webhook Trigger** - Accepts company name, ticker, and analysis parameters
+2. **Data Collection**:
+   - Search financial documents in Google Drive
+   - Fetch market research and competitive analysis
+   - Web scraping for SEC filings and earnings reports
+3. **AI Analysis Pipeline** (GPT-4 powered):
+   - Executive Summary Generation
+   - Financial Highlights Extraction
+   - Market Analysis & Competitive Positioning
+   - Investment Thesis Development
+   - Actionable Recommendations (DEEP DIVE/PURSUE/PASS)
+4. **Report Generation** - Professional HTML email with color-coded recommendations
+5. **Distribution** - Automated email delivery to investment team
+
 ## 🔧 AI Tool Integration
+
+### n8n Workflow Automation
+- Complex multi-agent workflows for PE analysis
+- Integration with Google Drive, Gmail, and web APIs
+- GPT-4 orchestration for financial insights
+- MCP server connectivity for extended capabilities
 
 ### Claude Code
 - Project instructions in `.taskmaster/CLAUDE.md`
 - Custom commands in `.claude/commands/`
 - MCP servers for extended functionality
+- Direct n8n workflow management via MCP
 
 ### Task Master AI  
 - Task management with AI assistance
 - PRD parsing and task generation
 - Complexity analysis and planning
+- Workflow development tracking
 
 ### Cursor IDE
 - AI pair programming
@@ -150,18 +178,22 @@ ln -s ~/.ai-tool-configs/pe-eval/settings.json .claude/settings.json
 ## 📚 Learning Objectives
 
 ### Technical Skills
-- [ ] Claude Code advanced workflows
-- [ ] Task Master project management
-- [ ] MCP server integration
-- [ ] AI-assisted debugging and testing
-- [ ] Multi-tool AI development workflows
+- [ ] n8n workflow orchestration for financial analysis
+- [ ] Multi-agent AI systems for investment research
+- [ ] MCP server integration for enterprise tools
+- [ ] LLM orchestration (GPT-4, Claude) for financial insights
+- [ ] API integration (Brave Search, Google Drive, Gmail)
+- [ ] Webhook-based automation triggers
+- [ ] Structured data extraction from financial documents
 
-### PE Automation Goals
-- [ ] Performance monitoring tools
-- [ ] Automated bottleneck detection  
-- [ ] Load testing automation
-- [ ] Performance regression alerts
-- [ ] Optimization recommendation engine
+### Private Equity Automation Goals
+- [ ] Automated company financial analysis (10-K, 10-Q, earnings reports)
+- [ ] Market research and competitive landscape assessment  
+- [ ] Investment thesis generation with AI insights
+- [ ] Risk assessment and due diligence automation
+- [ ] Portfolio monitoring and performance tracking
+- [ ] Automated investment recommendation reports
+- [ ] Deal flow pipeline management
 
 ## 🤝 Contributing
 

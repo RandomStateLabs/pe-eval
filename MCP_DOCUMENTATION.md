@@ -1,7 +1,7 @@
-# MCP Server Documentation for pe-eval Project
+# MCP Server Documentation for PE-Eval Private Equity Automation
 
 ## Overview
-This document tracks the MCP (Model Context Protocol) servers used in this project and their purposes.
+This document tracks the MCP (Model Context Protocol) servers used in the Private Equity AI Automation platform and their integration with n8n workflows.
 
 ## Configured MCP Servers
 
@@ -51,6 +51,21 @@ This document tracks the MCP (Model Context Protocol) servers used in this proje
   - Manage repository files
 - **Required**: GITHUB_PERSONAL_ACCESS_TOKEN
 
+### 6. **n8n MCP**
+- **Purpose**: Direct integration with n8n workflow automation platform
+- **Use Cases**:
+  - Access and manage PE analysis workflows
+  - View workflow ID: EdcGmkQjHRqhcRIX (Institutional PE Analysis)
+  - Monitor workflow executions
+  - Update workflow configurations
+  - Trigger webhook-based analyses
+- **Key Features**:
+  - Financial document search integration
+  - GPT-4 AI analysis orchestration
+  - Automated report generation
+  - Email distribution management
+- **Required**: n8n instance access credentials
+
 ## How to Use
 
 ### Starting Claude Code with Project MCPs
@@ -91,12 +106,13 @@ Use the `/mcp` command in Claude Code to see connection status.
 
 ## MCP Selection Guide
 
-- **Documentation lookup**: Context7, Microsoft Docs
-- **Project management**: TaskMaster AI
-- **Web research**: Brave Search
-- **Code repository work**: GitHub
-- **Library research**: Context7
-- **General web info**: Brave Search
+- **PE Workflow Management**: n8n MCP for workflow orchestration
+- **Financial Research**: Brave Search for market data and SEC filings
+- **Document Management**: Integration with Google Drive via n8n
+- **Project Management**: TaskMaster AI for development tracking
+- **Documentation Lookup**: Context7, Microsoft Docs
+- **Code Repository Work**: GitHub
+- **Investment Analysis**: n8n workflows with GPT-4 integration
 
 ## Notes
 

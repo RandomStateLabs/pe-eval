@@ -19,6 +19,10 @@ node_modules/
 .claude/settings.local.json
 .cursor/
 .taskmaster/config.json
+.taskmaster/state.json
+
+# MCP Configuration with API Keys (NEVER COMMIT)
+.mcp.json
 
 # Editor directories and files
 .idea/

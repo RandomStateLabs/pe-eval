@@ -807,7 +807,7 @@ Enable detailed logging:
 {
   "company": "Example Corp",
   "ticker": "EXMP",
-  "date": "2024-01-15",
+  "date": "2025-08-15",
   "recommendation": "PURSUE",
   "executiveSummary": "Example Corp presents a compelling mid-market opportunity...",
   "financialHighlights": {
@@ -900,6 +900,6 @@ await pushToDatadog(metrics);
 
 ---
 
-*Last Updated: January 2025*
+*Last Updated: August 2025*
 *Version: 1.0.0*
 *Maintained by: PE-Eval Development Team*

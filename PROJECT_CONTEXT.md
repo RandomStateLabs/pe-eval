@@ -255,6 +255,6 @@ curl -X POST webhook-url \        # Trigger PE analysis
 
 ---
 
-*Context Map Generated: January 2025*  
+*Context Map Generated: August 2025*  
 *Claude Code Session: PE-Eval Project Loading*  
 *Total Files Analyzed: 72 files across 6 categories*

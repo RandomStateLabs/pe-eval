@@ -19,21 +19,21 @@
 
 ## Project Overview
 
-**PE-Eval** is an advanced AI-powered automation platform for institutional private equity investment analysis, deal flow management, and portfolio monitoring.
+**PE-Eval** is an advanced document-driven AI automation platform for private equity firms, featuring real-time document monitoring and intelligent company analysis.
 
 ### Core Value Proposition
-- **90% reduction** in manual research time
-- **24/7 automated** investment analysis capability
-- **Standardized** analysis framework across all deals
-- **AI-powered insights** from GPT-4 and Claude models
+- **Document-driven analysis** - Each company has dedicated Google Drive folder
+- **Real-time triggers** - New documents automatically trigger updated analysis
+- **Living analysis reports** - Always-current analysis that evolves with new information
+- **AI-powered insights** from 5 specialized agents (GPT-4 and Claude models)
 
 ### Key Features
-- 🤖 Multi-agent AI analysis pipeline
-- 📊 Automated financial document processing
-- 🔍 Intelligent market research and competitive analysis
-- 📈 Investment thesis generation and recommendations
-- 📧 Professional report generation and distribution
-- 🔄 n8n workflow orchestration
+- 📁 Google Drive push notification monitoring
+- 🤖 5-agent AI analysis pipeline (Executive, Financial, Market, Thesis, Recommendations)
+- 📊 Multi-format document processing (PDF, Excel, Word)
+- 🔍 Company-specific analysis folders and triggers
+- 📈 Progressive analysis enhancement with each new document
+- 🔄 n8n workflow orchestration with document-based triggers
 
 ---
 
@@ -41,8 +41,9 @@
 
 ### Prerequisites
 - Node.js 18+ installed
-- API keys for: OpenAI, Google (Drive/Gmail), Brave Search
-- n8n instance (local or cloud)
+- API keys for: OpenAI, Google (Drive API, push notifications), Brave Search
+- n8n instance (local or cloud) with Google Drive integration
+- Google Drive with company-specific folders
 - Git for version control
 
 ### 30-Second Setup
@@ -57,7 +58,7 @@ cp .mcp.template.json .mcp.json
 cp .claude/settings.template.json .claude/settings.json
 cp .taskmaster/config.template.json .taskmaster/config.json
 
-# Add your API keys to .env
+# Add your API keys to .env (Google Drive API key required)
 # Configure Task Master
 task-master init
 task-master models --setup
@@ -66,61 +67,81 @@ task-master models --setup
 claude  # Start Claude Code session
 ```
 
-### First Analysis - ⚠️ CURRENTLY NOT FUNCTIONAL
-**Before attempting analysis, be aware:**
-- Workflow `EdcGmkQjHRqhcRIX` is INCOMPLETE and will NOT produce reports
-- Only data collection components are working
-- AI analysis and report generation are BROKEN
-
-**For development/testing data collection only:**
-1. Open n8n dashboard
-2. Import workflow ID: `EdcGmkQjHRqhcRIX`
-3. Configure webhook trigger (if attempting to test data collection)
-4. Send test request (will only collect data, not generate analysis):
-```json
-{
-  "company_name": "Apple Inc",
-  "ticker": "AAPL",
-  "analysis_depth": "deep_dive"
-}
+### Setup Company Folders
+**Document-Driven Architecture Setup:**
+1. Create Google Drive structure:
+```
+Private Equity Analysis/
+├── Company A/
+│   ├── 10K_2024.pdf
+│   ├── Q3_earnings.pdf
+│   └── investor_deck.pptx
+├── Company B/
+│   ├── financials_2024.xlsx
+│   └── market_research.pdf
 ```
 
-**Expected Result**: Data collection will work, but workflow will fail at AI analysis step.
+2. Configure Google Drive push notifications for each company folder
+3. Each new document automatically triggers company-specific analysis
+
+### Document Monitoring Setup
+**Real-time Document Processing:**
+```javascript
+// Google Drive webhook setup for each company folder
+const watchRequest = {
+  id: 'pe-analysis-' + companyName + '-' + Date.now(),
+  type: 'web_hook', 
+  address: 'https://your-n8n-instance.com/webhook/drive-changes'
+};
+```
+
+**Expected Result**: New documents trigger immediate analysis updates for specific companies.
 
 ---
 
 ## Architecture
 
-### System Architecture
+### Document-Driven System Architecture
 ```
-┌─────────────────┐     ┌──────────────┐     ┌─────────────┐
-│  Webhook        │────▶│  n8n         │────▶│  AI Agents  │
-│  Trigger        │     │  Orchestrator│     │  (GPT-4)    │
-└─────────────────┘     └──────────────┘     └─────────────┘
+┌─────────────────┐     ┌──────────────┐     ┌─────────────────┐
+│  Google Drive   │────▶│  Push        │────▶│  n8n Workflow   │
+│  Document       │     │  Notification│     │  Orchestrator   │
+│  Changes        │     │  Webhook     │     │                 │
+└─────────────────┘     └──────────────┘     └─────────────────┘
                                │                     │
                                ▼                     ▼
-                        ┌──────────────┐     ┌─────────────┐
-                        │  Google      │     │  Report     │
-                        │  Drive/Gmail │     │  Generation │
-                        └──────────────┘     └─────────────┘
+                        ┌──────────────┐     ┌─────────────────┐
+                        │  Document    │     │  5 AI Agents    │
+                        │  Extraction  │────▶│  (GPT-4/Claude) │
+                        │  Pipeline    │     │  Analysis       │
+                        └──────────────┘     └─────────────────┘
+                                                     │
+                                                     ▼
+                                              ┌─────────────────┐
+                                              │  Living         │
+                                              │  Analysis       │
+                                              │  Reports        │
+                                              └─────────────────┘
 ```
 
-### Data Flow
-1. **Input**: Company name and ticker via webhook
-2. **Document Search**: Google Drive financial documents
-3. **Web Research**: Brave Search API for market data
-4. **AI Analysis**: 5 parallel GPT-4 agents
-5. **Report Generation**: HTML formatted investment report
-6. **Distribution**: Automated email to investment team
+### Document-Driven Data Flow
+1. **Trigger**: New document added to company-specific Google Drive folder
+2. **Detection**: Google Drive push notification to n8n webhook
+3. **Extraction**: Multi-format document processing (PDF, Excel, Word)
+4. **AI Analysis**: 5 specialized agents process company-specific documents
+5. **Report Update**: Living analysis report enhanced with new insights
+6. **Distribution**: Updated analysis delivered to investment team
 
-### Technology Stack/sc
+### Technology Stack
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| Orchestration | n8n | Workflow automation |
-| AI Models | OpenAI GPT-4 | Financial analysis |
-| Search | Brave API | Market research |
-| Storage | Google Drive | Document repository |
-| Communication | Gmail | Report distribution |
+| Document Monitoring | Google Drive API | Real-time document change detection |
+| Orchestration | n8n | Workflow automation and triggers |
+| Document Processing | Multi-format extractors | PDF, Excel, Word text extraction |
+| AI Models | OpenAI GPT-4 & Claude | Document-based financial analysis |
+| Search | Brave API | Supplementary market research |
+| Storage | Google Drive | Company-specific document folders |
+| Notifications | Push webhooks | Real-time change notifications |
 | Development | Claude Code | AI-assisted coding |
 | Task Management | Task Master AI | Project tracking |
 
@@ -128,116 +149,142 @@ claude  # Start Claude Code session
 
 ## Core Components
 
-### 1. n8n Workflow Engine
-**Workflow ID**: `EdcGmkQjHRqhcRIX`
+### 1. Document Monitoring Engine
+**Google Drive Push Notifications**: Real-time document change detection
 
-### ⚠️ **CRITICAL WORKFLOW STATUS**
-**Current State**: INCOMPLETE/BROKEN - Cannot execute end-to-end PE analysis
-**Validation Status**: FAILED (27 errors, 14 warnings)
-**Workflow Active**: NO
+### ⚠️ **NEW ARCHITECTURE STATUS**
+**Current State**: TRANSITIONING to document-driven architecture
+**Previous Workflow**: `EdcGmkQjHRqhcRIX` being redesigned for document monitoring
+**New Approach**: Company folder monitoring with push notifications
 
-#### Actual Workflow Nodes (13 total)
+#### Document-Driven Workflow Components
 
-**✅ WORKING NODES:**
-1. **PE Analysis Trigger** (webhook) - Accepts POST requests to `/institutional-pe-analysis`
-2. **Extract & Validate Input** (code) - Validates company_name, ticker, analysis parameters
-3. **Search Financial Documents** (googleDrive) - Searches Drive for financial documents
-4. **Search Market Research** (googleDrive) - Searches Drive for market research
-5. **Web Financial Research** (httpRequest) - Brave Search API for web research
-6. **Process Document Data** (code) - Consolidates all collected data
+**✅ CORE COMPONENTS:**
+1. **Google Drive Webhook Handler** - Receives push notifications for document changes
+2. **Company Folder Mapper** - Maps changed documents to specific company analysis
+3. **Document Type Classifier** - Identifies PDF, Excel, Word document types
+4. **Multi-Format Text Extractor** - Extracts content from various document formats
+5. **Document Content Processor** - Cleans and structures extracted text
+6. **Company Analysis Router** - Routes documents to appropriate company analysis pipeline
 
-**❌ DISCONNECTED/BROKEN NODES:**
-7. **📊 Executive Summary AI** (openAI) - GPT-4 agent (NOT CONNECTED)
-8. **💰 Financial Highlights AI** (openAI) - GPT-4 agent (NOT CONNECTED)
-9. **🌍 Market Analysis AI** (openAI) - GPT-4 agent (NOT CONNECTED)
-10. **⚖️ Investment Thesis AI** (openAI) - GPT-4 agent (NOT CONNECTED)
-11. **🎯 Recommendations AI** (openAI) - GPT-4 agent (NOT CONNECTED)
-12. **📧 Institutional HTML Formatter** (code) - Report generation (NOT CONNECTED)
-13. **📤 Send Institutional Email** (gmail) - Email distribution (NOT CONNECTED)
+**🔄 AI ANALYSIS PIPELINE:**
+7. **📊 Executive Summary Agent** - Processes new documents for company overview updates
+8. **💰 Financial Analysis Agent** - Extracts and analyzes financial metrics from documents
+9. **🌍 Market Analysis Agent** - Incorporates market intelligence from new documents
+10. **⚖️ Investment Thesis Agent** - Updates investment rationale based on new information
+11. **🎯 Recommendations Agent** - Adjusts recommendations with new document insights
+12. **📧 Living Report Generator** - Updates existing analysis with new document findings
 
-#### Critical Issues
-- **Missing Connections**: AI agents cannot receive data from processing step
-- **Broken Pipeline**: HTML formatter cannot access AI outputs
-- **No Error Handling**: All external service calls lack error handling
-- **Inactive State**: Workflow cannot be triggered in current state
-
-#### Configuration Variables
+#### Document Processing Configuration
 ```javascript
-// Webhook URL
-WEBHOOK_URL = "https://your-n8n-instance.com/webhook/pe-analysis"
+// Google Drive push notification setup
+const companyFolders = {
+  "CompanyA": "1a2b3c4d5e6f7g8h9i0j",
+  "CompanyB": "2b3c4d5e6f7g8h9i0j1k"
+};
 
-// Google Drive Folder ID
-DRIVE_FOLDER_ID = "your-folder-id-here"
+// Webhook endpoint for document changes
+DOCUMENT_WEBHOOK_URL = "https://your-n8n-instance.com/webhook/drive-changes"
 
-// Email Recipients
-RECIPIENTS = ["investment-team@company.com"]
+// Document processing settings
+const documentTypes = {
+  "application/pdf": "pdf_extractor",
+  "application/vnd.ms-excel": "excel_extractor", 
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "word_extractor"
+};
 ```
 
 ### 2. AI Analysis Pipeline
 
-#### Agent Roles and Prompts
+#### Document-Based Agent Roles and Prompts
 
 **Executive Summary Agent**
 ```
-Role: Generate high-level investment overview
-Input: Company data, financials, market research
-Output: 2-3 paragraph executive summary
-Focus: Key investment highlights and risks
+Role: Synthesize company overview from new documents
+Input: Extracted text from company-specific documents, existing analysis
+Output: Updated 2-3 paragraph executive summary incorporating new insights
+Focus: Integration of new document findings with existing analysis
+Context: Company-specific folder and document history
 ```
 
 **Financial Analysis Agent**
 ```
-Role: Extract and analyze financial metrics
-Input: 10-K, 10-Q, earnings reports
-Output: Key metrics, trends, ratios
-Focus: Revenue growth, margins, cash flow
+Role: Extract and analyze financial metrics from uploaded documents
+Input: PDF financial statements, Excel spreadsheets, earnings documents
+Output: Updated key metrics, trends, and ratios with document citations
+Focus: Document-sourced revenue growth, margins, cash flow analysis
+Context: Multi-document financial trend analysis over time
 ```
 
 **Market Analysis Agent**
 ```
-Role: Assess competitive positioning
-Input: Industry reports, competitor data
-Output: Market size, growth, competitive advantages
-Focus: TAM, market share, moats
+Role: Assess market positioning from new intelligence documents  
+Input: Industry reports, competitive analysis documents, market research PDFs
+Output: Updated market size, growth projections, and competitive advantages
+Focus: Document-driven TAM updates, market share analysis, competitive moats
+Context: Company-specific market intelligence accumulation
 ```
 
 **Investment Thesis Agent**
 ```
-Role: Develop investment rationale
-Input: All previous analyses
-Output: Bull/bear case, opportunities
-Focus: Value creation potential
+Role: Evolve investment rationale based on new document insights
+Input: All updated agent analyses plus new document extractions
+Output: Refined bull/bear case incorporating latest document findings
+Focus: Document-driven value creation potential and risk assessment updates
+Context: Progressive thesis refinement with each new document
 ```
 
 **Recommendation Agent**
 ```
-Role: Provide actionable next steps
-Input: Complete analysis
-Output: DEEP DIVE / PURSUE / PASS
-Focus: Clear recommendation with rationale
+Role: Adjust recommendations based on accumulated document evidence
+Input: Complete updated analysis from all agents
+Output: Reinforced or revised DEEP DIVE / PURSUE / PASS decision
+Focus: Evidence-based recommendation evolution with new document impact
+Context: Decision confidence tracking with document-driven evidence
 ```
 
 ### 3. Document Processing
 
-#### Supported Document Types
-- SEC Filings (10-K, 10-Q, 8-K)
-- Earnings Reports and Transcripts
-- Investor Presentations
-- Industry Research Reports
-- Financial Statements (PDF/Excel)
+#### Supported Document Types and Processing
+**Financial Documents:**
+- SEC Filings (10-K, 10-Q, 8-K) - PDF text extraction
+- Earnings Reports and Transcripts - PDF processing
+- Financial Statements and Models - Excel/PDF extraction
+- Audit Reports and Financial Reviews - PDF processing
 
-#### Data Extraction Pipeline
-```python
-# Pseudo-code for document processing
-def process_document(file):
-    content = extract_text(file)
-    metrics = extract_financial_metrics(content)
-    insights = generate_ai_insights(content)
+**Market Intelligence Documents:**
+- Industry Research Reports - PDF text extraction
+- Competitive Analysis Documents - PDF/Word processing
+- Market Studies and Surveys - Multi-format processing
+- Investor Presentations - PDF/PowerPoint extraction
+
+#### Document Processing Pipeline
+```javascript
+// Document processing workflow for company-specific analysis
+async function processCompanyDocument(fileId, companyName, fileName) {
+    // Step 1: Extract content based on document type
+    const content = await extractDocumentContent(fileId, fileName);
+    
+    // Step 2: Associate with company context
+    const companyContext = await getExistingAnalysis(companyName);
+    
+    // Step 3: Route to appropriate AI agents
+    const analysisUpdates = await routeToAIAgents(content, companyContext);
+    
+    // Step 4: Update living analysis report
+    const updatedAnalysis = await updateCompanyAnalysis(
+        companyName, 
+        analysisUpdates, 
+        fileName
+    );
+    
     return {
-        'metrics': metrics,
-        'insights': insights,
-        'source': file.name
-    }
+        company: companyName,
+        newDocument: fileName,
+        analysisUpdates: updatedAnalysis,
+        documentType: getDocumentType(fileName)
+    };
+}
 ```
 
 ### 4. Report Generation

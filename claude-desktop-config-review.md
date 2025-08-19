@@ -58,7 +58,8 @@ Your Claude Desktop setup includes both global and project-specific MCP server c
 3. **context7** ✅ - Working
 4. **brave-search** ✅ - Working
 5. **github** ✅ - Working
-6. **mcp-obsidian** ✅ - Just added and working
+6. **mcp-obsidian** ✅ - Working (note management for research)
+7. **n8n-mcp** ✅ - Working (document-driven workflow orchestration)
 
 ## Recommendations
 
@@ -93,14 +94,14 @@ Your Claude Desktop setup includes both global and project-specific MCP server c
    - **Automation**: n8n-mcp, puppeteer
    - **Content**: twitter-mcp, mcp-youtube, ElevenLabs
 
-### Missing Integrations You Might Consider
+### Document-Driven Architecture Integrations
 
-Based on your setup, you might benefit from:
-1. **Docker MCP** - For container management
-2. **Kubernetes MCP** - If working with K8s
-3. **AWS MCP** - For AWS services (you have Azure)
-4. **Slack MCP** - For team communication
-5. **Linear/Jira MCP** - For issue tracking
+Based on the new document-driven PE analysis system:
+1. **Google Drive Integration** - ✅ Configured via n8n-mcp for real-time monitoring
+2. **Document Processing** - Multi-format extraction (PDF, Excel, Word, PowerPoint)
+3. **Push Notifications** - Google Drive webhooks for instant document change detection
+4. **Company Folder Management** - Automated routing to company-specific analysis pipelines
+5. **Living Reports** - Version-controlled analysis that updates with new documents
 
 ## Obsidian Integration Status
 

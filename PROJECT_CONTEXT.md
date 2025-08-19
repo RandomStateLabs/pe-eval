@@ -1,13 +1,13 @@
 # PE-Eval Project Context Map
 
 ## 📋 Project Overview
-**PE-Eval** is an AI-powered automation platform for private equity investment analysis, featuring n8n workflow orchestration, multi-agent AI analysis, and comprehensive task management.
+**PE-Eval** is a document-driven AI automation platform for private equity investment analysis, featuring Google Drive monitoring, real-time document processing, and living analysis reports that evolve with new documents.
 
 ## 🎯 Project Status
-- **Type**: Learning/Development Platform
-- **Stage**: Configuration & Setup Phase
-- **Primary Focus**: AI workflow automation for PE analysis
-- **Repository**: Public learning resource with private configurations
+- **Type**: Document-Driven Investment Analysis Platform
+- **Stage**: Architecture Transition Phase (Webhook → Document-Driven)
+- **Primary Focus**: Real-time document monitoring and progressive analysis enhancement
+- **Architecture**: Company-specific Google Drive folders with push notification triggers
 
 ---
 
@@ -134,52 +134,51 @@ cp .env.example .env
 
 ---
 
-## 🔄 Workflow Integration Status
+## 🔄 Document-Driven Architecture Status
 
-### n8n Automation Platform
-- **Workflow ID**: `EdcGmkQjHRqhcRIX` (Institutional PE Analysis)
-- **Connection**: Docker-based MCP server configured
-- **API Access**: Configured with JWT token
-- **Status**: ⚠️ **DEVELOPMENT/INCOMPLETE** - Critical workflow issues identified
+### New Architecture Implementation
+- **Document Monitoring**: Google Drive push notifications for real-time triggers
+- **Company Folders**: Each private company has dedicated Google Drive folder structure
+- **Multi-Format Processing**: PDF, Excel, Word, PowerPoint document extraction
+- **Status**: 🔧 **ACTIVE DEVELOPMENT** - Transitioning from webhook to document-driven system
 
-### ⚠️ Workflow Analysis Results
-**Validation Status**: FAILED (27 errors, 14 warnings)
+### 🔄 Architecture Transition Progress
+**Migration Status**: Moving from manual webhook triggers to automated document monitoring
 
-**Working Components:**
-✅ Webhook trigger (POST /institutional-pe-analysis)
-✅ Data collection (Google Drive search for financial docs)
-✅ Market research (Brave Search API integration)
-✅ Input validation and processing
+**New Document-Driven Components:**
+🔧 **Google Drive Webhook Handler**: Receives push notifications for document changes
+🔧 **Company Folder Mapper**: Maps documents to specific company analysis pipelines  
+🔧 **Document Type Classifier**: Identifies and routes PDF, Excel, Word documents
+✅ **Multi-Format Extractors**: Text extraction from various document formats
+✅ **AI Agent Enhancement**: Document-aware analysis prompts and processing
+🔧 **Living Report System**: Progressive analysis updates with new document insights
 
-**Broken/Incomplete Components:**
-❌ **AI Analysis Pipeline**: 5 GPT-4 agents exist but are DISCONNECTED
-❌ **Report Generation**: HTML formatter not connected to AI outputs
-❌ **Email Distribution**: Gmail sender not connected to workflow
-❌ **Error Handling**: Missing throughout workflow
-❌ **Workflow State**: Currently inactive
-
-### Current Architecture Reality
-**Actual Working Flow:**
+### Document Processing Architecture
+**New Working Flow:**
 ```
-Webhook → Input Validation → Parallel Data Collection → Data Processing → [BROKEN CHAIN]
-                                   ↓
-                    [5 Disconnected AI Agents - Cannot Execute]
-                                   ↓
-                    [Disconnected HTML Formatter & Email]
+Company Document Upload → Google Drive Push Notification → n8n Webhook Handler 
+→ Document Type Detection → Content Extraction → Company Analysis Router 
+→ 5 Enhanced AI Agents → Living Report Updates → Team Notifications
 ```
 
-**Planned Architecture (Not Implemented):**
-1. Executive Summary Generator (GPT-4)
-2. Financial Metrics Analyzer (GPT-4)
-3. Market Intelligence Agent (GPT-4)
-4. Investment Thesis Developer (GPT-4)
-5. Recommendation Engine (GPT-4)
+**Company Folder Structure:**
+```
+Private Equity Analysis/
+├── CompanyA/ (folder ID: monitored for changes)
+│   ├── 10K_2024.pdf → triggers Financial + Executive agents
+│   ├── earnings_Q3.pdf → triggers Financial + Thesis agents
+│   └── market_research.pdf → triggers Market agent
+├── CompanyB/ (folder ID: monitored for changes)  
+│   ├── investor_deck.pptx → triggers Executive + Recommendation agents
+│   └── financial_model.xlsx → triggers Financial agent
+```
 
-### Data Integration Points
-- **Google Drive**: ✅ Document repository access (WORKING)
-- **Gmail**: ⚠️ Report distribution system (CONFIGURED BUT DISCONNECTED)
-- **Brave Search**: ✅ Market research API (WORKING)
-- **Webhook Triggers**: ✅ External analysis requests (WORKING)
+### Enhanced Integration Points
+- **Google Drive API**: ✅ Real-time document change monitoring with push notifications
+- **Document Processing**: ✅ Multi-format text extraction (PDF, Excel, Word, PowerPoint)
+- **AI Agent Coordination**: 🔧 Document-specific analysis routing and processing
+- **Living Reports**: 🔧 Version-controlled analysis that updates with new documents  
+- **Company Intelligence**: 🔧 Progressive analysis enhancement per company folder
 
 ---
 
@@ -212,28 +211,32 @@ Webhook → Input Validation → Parallel Data Collection → Data Processing �
 ## 🎯 Usage Context
 
 ### Primary Use Cases
-1. **PE Investment Analysis** - Automated company research and evaluation
-2. **AI Tool Learning** - Educational platform for AI-assisted development
-3. **Workflow Automation** - n8n-based business process automation
-4. **Task Management** - AI-powered project tracking and planning
+1. **Document-Driven PE Analysis** - Real-time investment analysis triggered by new documents
+2. **Living Investment Intelligence** - Progressive analysis enhancement with document accumulation
+3. **Multi-Company Portfolio Monitoring** - Cross-folder comparative analysis and tracking
+4. **Evidence-Based Investment Decisions** - Document-cited analysis and recommendations
 
 ### Target Workflows
 ```bash
-# Daily Development Workflow
+# Document-Driven Analysis Workflow
+# 1. Upload financial document to company folder → Automatic analysis trigger
+# 2. Google Drive push notification → n8n document processing
+# 3. Multi-format extraction → AI agent analysis → Report updates
+
+# Daily Development Workflow  
 task-master next                    # Get next task
 claude                             # Start AI development session
-# Implement features with AI assistance
+# Implement document processing features with AI assistance
 task-master set-status --id=X --status=done
 
-# PE Analysis Workflow  
-# Trigger via webhook: POST /webhook/pe-analysis
-# Automated: Document search → AI analysis → Report generation
+# Company Analysis Workflow
+# Real-time: Document upload → Push notification → Analysis update → Team notification
 ```
 
 ### Learning Objectives
-- **Technical**: n8n workflows, MCP integration, AI orchestration
-- **Business**: PE analysis automation, investment research
-- **AI Tools**: Claude Code, TaskMaster AI, multi-agent systems
+- **Technical**: Google Drive API, push notifications, document processing, real-time triggers
+- **Business**: Document-driven investment analysis, progressive due diligence
+- **AI Tools**: Document-aware AI agents, living analysis reports, multi-format processing
 
 ---
 
@@ -243,16 +246,21 @@ task-master set-status --id=X --status=done
 ```bash
 # TaskMaster AI
 task-master init                   # Initialize project
-task-master next                   # Get next task
+task-master next                   # Get next task  
 task-master show <id>              # View task details
 
-# Claude Code  
+# Claude Code
 claude                            # Start AI session
 claude --mcp-debug               # Debug MCP connections
 
-# n8n Workflow
-curl -X POST webhook-url \        # Trigger PE analysis
-  -d '{"company":"Apple","ticker":"AAPL"}'
+# Document-Driven Analysis (New)
+# 1. Upload document to company folder in Google Drive
+# 2. Push notification automatically triggers n8n workflow
+# 3. Analysis updates happen automatically - no manual trigger needed
+
+# Google Drive Structure Setup
+mkdir "Private Equity Analysis/CompanyA"    # Create company folder
+# Upload documents → Automatic analysis triggers
 ```
 
 ### Configuration Files Priority
@@ -272,11 +280,11 @@ curl -X POST webhook-url \        # Trigger PE analysis
 
 ## 📝 Project Context Summary
 
-**PE-Eval** is a sophisticated AI automation platform in active development, configured for private equity investment analysis through n8n workflows and multi-agent AI systems. The project demonstrates advanced integration of AI tools (Claude Code, TaskMaster AI) with workflow automation (n8n) and protocol-based tool communication (MCP servers).
+**PE-Eval** is a sophisticated document-driven AI automation platform transitioning to real-time investment analysis through Google Drive monitoring and intelligent document processing. The system enables private equity firms to create living analysis reports that automatically evolve as new financial documents are added to company-specific folders.
 
-**Current Status**: Configuration phase with functional AI tool integration, ready for workflow development and PE analysis implementation.
+**Current Status**: Architecture transition phase - moving from manual webhook triggers to automated document-driven analysis with Google Drive push notifications and multi-format document processing.
 
-**Next Steps**: Secure API key management, implement core PE analysis workflows, and expand AI agent capabilities.
+**Next Steps**: Complete document monitoring implementation, enhance AI agents for document-aware analysis, and deploy living analysis report system.
 
 ---
 

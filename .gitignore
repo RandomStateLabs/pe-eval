@@ -38,3 +38,11 @@ node_modules/
 
 # OS specific
 .DS_Store
+
+# Environment variables
+.idea
+.vscode
+
+# Task files
+# tasks.json
+# tasks/ 

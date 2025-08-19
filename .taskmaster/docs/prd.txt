@@ -1,0 +1,458 @@
+# Document-Driven PE Analysis System
+
+## Project Overview
+
+Build an intelligent document monitoring system that automatically generates updated company analysis whenever new financial documents, research, or due diligence materials are added to private company folders in Google Drive. This creates "living analysis" that stays current as new information becomes available.
+
+## The Real Workflow (Corrected Understanding)
+
+### Current PE Firm Process
+1. **Private Company Folders**: Each target company has dedicated Google Drive folder
+   - `/Private Companies/CompanyA/` contains all CompanyA materials
+   - `/Private Companies/CompanyB/` contains all CompanyB materials
+   - etc.
+
+2. **Document Collection**: PE team continuously adds new documents
+   - Financial statements (quarterly, annual)
+   - Crunchbase data exports  
+   - Management presentations
+   - Industry research reports
+   - Due diligence findings
+   - Third-party analysis reports
+
+3. **Manual Analysis**: Currently someone manually reviews new docs and updates analysis
+
+### Automated Solution Architecture
+
+```
+New Document Added to /CompanyA/ folder
+    ↓
+Google Drive Change Detection (Push Notifications)
+    ↓  
+n8n Triggered for CompanyA Specifically
+    ↓
+Collect ALL Documents in CompanyA Folder  
+    ↓
+Parse/Extract Data from All Document Types
+    ↓
+Run Complete AI Analysis Using All Available Data
+    ↓
+Generate Updated CompanyA Analysis Report
+    ↓
+Distribute to Stakeholders + Archive Previous Version
+```
+
+## Technical Architecture
+
+### Google Drive Folder Structure
+```
+/PE Analysis System/
+├── Private Companies/
+│   ├── CompanyA-TechStartup/
+│   │   ├── Financials/
+│   │   │   ├── 2024-Q1-Financials.xlsx
+│   │   │   ├── 2024-Q2-Financials.xlsx  
+│   │   │   └── Cash-Flow-Projections.xlsx
+│   │   ├── Research/
+│   │   │   ├── Crunchbase-Export.pdf
+│   │   │   ├── Industry-Analysis.pdf
+│   │   │   └── Competitive-Landscape.docx
+│   │   ├── Due-Diligence/
+│   │   │   ├── Management-Interview-Notes.pdf
+│   │   │   ├── Reference-Calls.docx
+│   │   │   └── Technical-Assessment.pdf
+│   │   └── Analysis-Reports/
+│   │       ├── 2024-08-01-Analysis-Report.pdf
+│   │       └── 2024-08-19-Analysis-Report.pdf (latest)
+│   │
+│   ├── CompanyB-HealthcareCo/
+│   │   ├── Financials/
+│   │   ├── Research/  
+│   │   ├── Due-Diligence/
+│   │   └── Analysis-Reports/
+│   │
+│   └── CompanyC-ManufacturingInc/
+│       └── [same structure]
+│
+└── System/
+    ├── Templates/
+    ├── Logs/
+    └── Configuration/
+```
+
+### Change Detection Methods
+
+**Option 1: Google Drive Push Notifications (Recommended)**
+```javascript
+// Setup webhook endpoint for Drive API changes
+const webhook = {
+  id: 'pe-analysis-webhook',
+  type: 'web_hook', 
+  address: 'https://your-n8n-instance.com/webhook/drive-changes',
+  resourceId: 'folder-id-for-private-companies'
+};
+
+// Receives real-time notifications when files added/modified
+```
+
+**Option 2: Polling with Change Detection**
+```javascript
+// n8n Schedule Trigger - Poll every 60 seconds
+const lastCheck = await getLastCheckTime();
+const changes = await googleDrive.changes.list({
+  pageToken: lastCheck.pageToken,
+  includeItemsFromAllDrives: true,
+  supportsAllDrives: true
+});
+```
+
+### Document Processing Pipeline
+
+**Step 1: File Change Detection**
+```javascript
+// Webhook Handler - Process Drive Change Notification
+const changeData = $json.changes;
+const changedFiles = changeData.filter(change => {
+  // Only process files in Private Companies folders
+  return change.file.parents.some(parent => 
+    parent.id.startsWith('private-companies-folder')
+  );
+});
+
+return changedFiles.map(change => ({
+  companyName: extractCompanyFromPath(change.file.parents[0].name),
+  companyFolderId: change.file.parents[0].id,
+  triggeredBy: {
+    fileName: change.file.name,
+    fileId: change.file.id,
+    changeType: change.changeType // 'file_added', 'file_modified'
+  }
+}));
+```
+
+**Step 2: Company Document Collection**
+```javascript
+// Function Node - Collect All Company Documents
+const companyFolderId = $json.companyFolderId;
+const companyName = $json.companyName;
+
+// Get all files in company folder (recursive)
+const allFiles = await getAllFilesRecursive(companyFolderId);
+
+// Categorize documents by type
+const documentCategories = {
+  financials: allFiles.filter(f => isFinancialDoc(f.name)),
+  research: allFiles.filter(f => isResearchDoc(f.name)), 
+  dueDiligence: allFiles.filter(f => isDueDiligenceDoc(f.name)),
+  presentations: allFiles.filter(f => isPresentationDoc(f.name))
+};
+
+return [{
+  json: {
+    companyName: companyName,
+    companyFolderId: companyFolderId,
+    documentCount: allFiles.length,
+    documents: documentCategories,
+    triggerFile: $json.triggeredBy
+  }
+}];
+```
+
+**Step 3: Document Data Extraction**
+```javascript
+// Function Node - Extract Data from All Document Types
+
+const extractors = {
+  // PDF documents (financial reports, research)
+  pdf: async (fileId) => {
+    const file = await googleDrive.files.get({fileId, alt: 'media'});
+    return await extractTextFromPDF(file.data);
+  },
+  
+  // Excel/CSV financials  
+  xlsx: async (fileId) => {
+    const file = await googleDrive.files.get({fileId, alt: 'media'});
+    const workbook = XLSX.read(file.data);
+    return extractFinancialData(workbook);
+  },
+  
+  // Word documents (notes, analysis)
+  docx: async (fileId) => {
+    const file = await googleDrive.files.get({fileId, alt: 'media'});
+    return await extractTextFromDOCX(file.data);
+  }
+};
+
+// Process all documents and extract relevant data
+const extractedData = {};
+for (const [category, files] of Object.entries($json.documents)) {
+  extractedData[category] = [];
+  
+  for (const file of files) {
+    const extractor = extractors[getFileExtension(file.name)];
+    if (extractor) {
+      const data = await extractor(file.id);
+      extractedData[category].push({
+        fileName: file.name,
+        extractedData: data,
+        lastModified: file.modifiedTime
+      });
+    }
+  }
+}
+
+return [{
+  json: {
+    companyName: $json.companyName,
+    extractedData: extractedData,
+    documentSummary: generateDocumentSummary(extractedData)
+  }
+}];
+```
+
+### AI Analysis Pipeline (Enhanced for Documents)
+
+**Agent 1: Document Synthesis & Executive Summary**
+```json
+{
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a senior private equity analyst. Synthesize information from multiple company documents to create comprehensive executive summaries."
+    },
+    {
+      "role": "user", 
+      "content": "Company: {{$json.companyName}}\n\nAvailable Documents:\nFinancials: {{$json.extractedData.financials.length}} files\nResearch: {{$json.extractedData.research.length}} files\nDue Diligence: {{$json.extractedData.dueDiligence.length}} files\n\nDocument Content Summary:\n{{$json.documentSummary}}\n\nLatest Trigger: New document '{{$json.triggerFile.fileName}}' added\n\nGenerate updated executive summary incorporating all available information, highlighting what's new/changed since previous analysis."
+    }
+  ],
+  "max_tokens": 2500,
+  "temperature": 0.3
+}
+```
+
+**Agent 2: Financial Analysis (Document-Driven)**  
+```json
+{
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a financial analyst specializing in private company analysis. Analyze financial documents and extract key metrics and trends."
+    },
+    {
+      "role": "user",
+      "content": "Analyze {{$json.companyName}} using available financial documents:\n\nFinancial Data:\n{{$json.extractedData.financials}}\n\nFocus on: revenue trends, profitability analysis, cash flow patterns, working capital management, debt structure, and key financial ratios. Compare current performance to historical data if multiple periods available. Identify any red flags or positive trends."
+    }
+  ],
+  "max_tokens": 2000,
+  "temperature": 0.2
+}
+```
+
+**Agent 3: Market & Competitive Intelligence**
+```json
+{
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system", 
+      "content": "You are a market research analyst. Analyze company positioning based on research documents and competitive intelligence."
+    },
+    {
+      "role": "user",
+      "content": "Analyze market position for {{$json.companyName}} based on research documents:\n\nResearch Data:\n{{$json.extractedData.research}}\n\nDue Diligence Insights:\n{{$json.extractedData.dueDiligence}}\n\nAssess: market size and growth, competitive landscape, differentiation factors, customer feedback, industry trends, and strategic positioning. Use any Crunchbase data, industry reports, or competitive analysis documents available."
+    }
+  ],
+  "max_tokens": 2000,
+  "temperature": 0.3
+}
+```
+
+**Agent 4: Investment Thesis Update**
+```json
+{
+  "model": "gpt-4o", 
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a PE principal updating investment theses based on new information. Focus on how new documents change the investment perspective."
+    },
+    {
+      "role": "user",
+      "content": "Update investment thesis for {{$json.companyName}} based on latest analysis:\n\nExecutive Summary: {{$node['Agent 1'].json.choices[0].message.content}}\nFinancial Analysis: {{$node['Agent 2'].json.choices[0].message.content}}\nMarket Analysis: {{$node['Agent 3'].json.choices[0].message.content}}\n\nTriggering Event: {{$json.triggerFile.fileName}} added to company folder\n\nProvide updated investment thesis addressing: how new information impacts valuation, revised risk assessment, updated value creation opportunities, any changes to exit strategy, and overall investment recommendation."
+    }
+  ],
+  "max_tokens": 2000,
+  "temperature": 0.4
+}
+```
+
+**Agent 5: Action Items & Next Steps**
+```json
+{
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a senior PE partner providing specific next steps based on updated company analysis and new information."
+    },
+    {
+      "role": "user",
+      "content": "Based on updated {{$json.companyName}} analysis triggered by new document '{{$json.triggerFile.fileName}}', provide specific action items:\n\nUpdated Investment Thesis: {{$node['Agent 4'].json.choices[0].message.content}}\n\nProvide: immediate action items, additional due diligence needed, key questions for management, document gaps to fill, timeline for next steps, and updated deal priority/status recommendation."
+    }
+  ],
+  "max_tokens": 1500,
+  "temperature": 0.4
+}
+```
+
+### Report Generation & Version Control
+
+**Enhanced Report with Change Tracking**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .report-header { background: #2c3e50; color: white; padding: 20px; }
+        .update-notice { background: #e8f5e8; border: 2px solid #27ae60; padding: 15px; margin: 20px 0; }
+        .change-indicator { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin: 10px 0; }
+        .section { margin: 25px 0; page-break-inside: avoid; }
+        .document-summary { background: #f8f9fa; padding: 15px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <h1>{{companyName}} - Updated Analysis Report</h1>
+        <p>Generated: {{generatedDate}} | Triggered by: {{triggerDocument}}</p>
+    </div>
+    
+    <div class="update-notice">
+        <strong>🔄 Analysis Update Notice</strong><br>
+        This report has been automatically updated due to new document: <strong>{{triggerDocument}}</strong><br>
+        Total documents analyzed: {{totalDocuments}} | Last updated: {{lastUpdate}}
+    </div>
+    
+    <div class="section">
+        <h2>📄 Document Summary</h2>
+        <div class="document-summary">
+            <strong>Financial Documents:</strong> {{financialDocCount}} files<br>
+            <strong>Research & Market Data:</strong> {{researchDocCount}} files<br>  
+            <strong>Due Diligence Materials:</strong> {{dueDiligenceDocCount}} files<br>
+            <strong>Latest Addition:</strong> {{triggerDocument}} ({{triggerDate}})
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>📊 Executive Summary</h2>
+        <div class="change-indicator">Key changes from previous analysis highlighted below</div>
+        {{executiveSummary}}
+    </div>
+    
+    <div class="section">
+        <h2>💰 Financial Analysis</h2>
+        {{financialAnalysis}}
+    </div>
+    
+    <div class="section">
+        <h2>🏪 Market & Competitive Position</h2>
+        {{marketAnalysis}}
+    </div>
+    
+    <div class="section">  
+        <h2>🎯 Updated Investment Thesis</h2>
+        {{investmentThesis}}
+    </div>
+    
+    <div class="section">
+        <h2>✅ Next Steps & Action Items</h2>
+        {{actionItems}}
+    </div>
+    
+    <div class="section">
+        <h2>📋 Document History</h2>
+        <p>This analysis incorporates data from {{totalDocuments}} documents last modified between {{oldestDoc}} and {{newestDoc}}.</p>
+    </div>
+</body>
+</html>
+```
+
+### Notification & Distribution System
+
+**Smart Notifications Based on Changes**
+```javascript
+// Function Node - Determine Notification Priority
+const triggerFile = $json.triggerFile.fileName.toLowerCase();
+let priority = 'normal';
+let notificationGroup = ['team@pe-firm.com'];
+
+// High priority triggers
+if (triggerFile.includes('financial') || triggerFile.includes('q1') || triggerFile.includes('q2') || 
+    triggerFile.includes('q3') || triggerFile.includes('q4') || triggerFile.includes('annual')) {
+  priority = 'urgent';
+  notificationGroup = ['partners@pe-firm.com', 'analysts@pe-firm.com'];
+}
+
+// Medium priority triggers  
+if (triggerFile.includes('research') || triggerFile.includes('market') || 
+    triggerFile.includes('competitive') || triggerFile.includes('crunchbase')) {
+  priority = 'high';
+  notificationGroup = ['team@pe-firm.com', 'research@pe-firm.com'];
+}
+
+return [{
+  json: {
+    priority: priority,
+    recipients: notificationGroup,
+    subject: `${priority.toUpperCase()}: ${$json.companyName} Analysis Updated - New ${triggerFile}`,
+    companyName: $json.companyName
+  }
+}];
+```
+
+## Implementation Phases
+
+### Phase 1: Document Monitoring Setup (1 week)
+- Configure Google Drive push notifications for company folders
+- Set up folder structure and permissions
+- Build document change detection and categorization  
+- Create basic database schema for tracking company analyses
+
+### Phase 2: Document Processing Pipeline (1.5 weeks)
+- Implement document extraction for PDF, Excel, Word files
+- Build document categorization system (financials, research, due diligence)
+- Create data extraction and summarization capabilities
+- **CRITICAL**: Fix and connect the 5 GPT-4 analysis agents
+
+### Phase 3: Analysis & Report Generation (1 week)  
+- Connect document data to AI analysis pipeline
+- Implement enhanced report generation with change tracking
+- Build version control for analysis reports
+- Create automatic report distribution system
+
+### Phase 4: Production & Monitoring (0.5 weeks)
+- Set up monitoring for document processing
+- Implement smart notifications based on document types
+- Add error handling and retry logic
+- Create admin dashboard for system oversight
+
+**Total Timeline: 4 weeks**
+
+## Success Criteria
+
+### Functional Goals
+- **Automatic Detection**: New documents trigger analysis within 2 minutes
+- **Comprehensive Analysis**: System processes all document types (PDF, Excel, Word)
+- **Living Reports**: Analysis stays current with latest information
+- **Smart Notifications**: Priority-based alerts for different document types
+- **Version Control**: Clear tracking of analysis updates and triggers
+
+### Business Impact
+- **Reduced Manual Work**: Eliminate manual analysis updates
+- **Faster Decision Making**: Always-current analysis for investment decisions
+- **Better Information Usage**: All documents automatically incorporated
+- **Improved Tracking**: Clear audit trail of analysis evolution
+- **Enhanced Collaboration**: Team gets automatic updates on company changes
+
+This document-driven approach creates a truly intelligent system that keeps PE analysis current as new information becomes available!

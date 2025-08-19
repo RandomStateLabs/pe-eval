@@ -25,7 +25,7 @@ Custom: Specify with --file parameter
 ```
 Complexity Analysis Summary
 ━━━━━━━━━━━━━━━━━━━━━━━━
-Analysis Date: 2025-08-15
+Analysis Date: 2024-01-15
 Tasks Analyzed: 32
 High Complexity: 5 (16%)
 Medium Complexity: 12 (37%)
@@ -108,7 +108,7 @@ Use report for:
 /project:tm/complexity-report
 → Opens latest analysis
 
-/project:tm/complexity-report --file=archived/2025-08-01.md
+/project:tm/complexity-report --file=archived/2024-01-01.md
 → View historical analysis
 
 After viewing:

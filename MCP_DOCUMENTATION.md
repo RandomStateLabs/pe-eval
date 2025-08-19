@@ -1,7 +1,7 @@
-# MCP Server Documentation for PE-Eval Private Equity Automation
+# MCP Server Documentation for PE-Eval Document-Driven Investment Analysis
 
 ## Overview
-This document tracks the MCP (Model Context Protocol) servers used in the Private Equity AI Automation platform and their integration with n8n workflows.
+This document tracks the MCP (Model Context Protocol) servers used in the PE-Eval document-driven investment analysis platform, featuring Google Drive monitoring, real-time document processing, and living analysis reports.
 
 ## Configured MCP Servers
 
@@ -52,19 +52,20 @@ This document tracks the MCP (Model Context Protocol) servers used in the Privat
 - **Required**: GITHUB_PERSONAL_ACCESS_TOKEN
 
 ### 6. **n8n MCP**
-- **Purpose**: Direct integration with n8n workflow automation platform
+- **Purpose**: Direct integration with n8n workflow automation platform for document-driven analysis
 - **Use Cases**:
-  - Access and manage PE analysis workflows
-  - View workflow ID: EdcGmkQjHRqhcRIX (Institutional PE Analysis)
-  - Monitor workflow executions
-  - Update workflow configurations
-  - Trigger webhook-based analyses
+  - Manage document monitoring workflows  
+  - Configure Google Drive push notification handlers
+  - Monitor document processing executions
+  - Update AI agent workflow configurations
+  - Handle real-time document change triggers
 - **Key Features**:
-  - Financial document search integration
-  - GPT-4 AI analysis orchestration
-  - Automated report generation
-  - Email distribution management
-- **Required**: n8n instance access credentials
+  - **Document-Driven Workflows**: Google Drive change detection and processing
+  - **Company Folder Monitoring**: Per-company document analysis routing
+  - **Multi-Format Processing**: PDF, Excel, Word, PowerPoint extraction
+  - **Living Report Updates**: Progressive analysis enhancement with new documents
+  - **AI Agent Orchestration**: Document-aware analysis pipeline coordination
+- **Required**: n8n instance access credentials, Google Drive API integration
 
 ## How to Use
 
@@ -104,15 +105,16 @@ Use the `/mcp` command in Claude Code to see connection status.
 4. **Test MCP connectivity** at start of each session
 5. **Use appropriate MCPs** for the task at hand
 
-## MCP Selection Guide
+## MCP Selection Guide for Document-Driven Analysis
 
-- **PE Workflow Management**: n8n MCP for workflow orchestration
-- **Financial Research**: Brave Search for market data and SEC filings
-- **Document Management**: Integration with Google Drive via n8n
-- **Project Management**: TaskMaster AI for development tracking
-- **Documentation Lookup**: Context7, Microsoft Docs
-- **Code Repository Work**: GitHub
-- **Investment Analysis**: n8n workflows with GPT-4 integration
+- **Document Processing Workflows**: n8n MCP for Google Drive monitoring and multi-format extraction
+- **Real-Time Change Detection**: n8n MCP for push notification handling and document routing
+- **Company Intelligence Research**: Brave Search for supplementary market data and company research
+- **Document Repository Management**: Google Drive integration via n8n workflows
+- **Development Task Management**: TaskMaster AI for document processing feature development
+- **Technical Documentation**: Context7, Microsoft Docs for implementation guidance
+- **Code Repository Operations**: GitHub for document processing pipeline development
+- **Living Analysis Reports**: n8n workflows orchestrating document-aware AI agent analysis
 
 ## Notes
 

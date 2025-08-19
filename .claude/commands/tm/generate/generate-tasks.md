@@ -20,7 +20,7 @@ Title: Implement user authentication
 Status: pending
 Priority: high
 Dependencies: []
-Created: 2025-08-15
+Created: 2024-01-15
 Complexity: 7
 
 ## Description

@@ -2,109 +2,117 @@
 
 ## Executive Summary
 
-PE-Eval is an advanced AI-powered automation platform designed for institutional private equity firms to streamline investment analysis, due diligence, and portfolio management. The system leverages cutting-edge AI models (GPT-4, Claude) and workflow automation (n8n) to transform manual investment research into intelligent, automated processes.
+PE-Eval is an advanced document-driven AI automation platform designed for private equity firms to enable real-time investment analysis through intelligent document monitoring. The system uses Google Drive push notifications and specialized AI agents to automatically analyze new financial documents, creating living analysis reports that evolve with each new document addition.
 
 ## Core Capabilities
 
-### 1. Automated Investment Analysis
-- **Company Research**: Automated gathering of financial documents, SEC filings, and market research
-- **Financial Analysis**: AI-powered extraction of key financial metrics and performance indicators
-- **Market Intelligence**: Competitive landscape assessment and industry trend analysis
-- **Risk Assessment**: Automated identification of investment risks and red flags
+### 1. Document-Driven Analysis
+- **Company-Specific Folders**: Each private company has dedicated Google Drive folder containing all financial documents
+- **Real-Time Monitoring**: Google Drive push notifications trigger immediate analysis when new documents are added
+- **Multi-Format Processing**: Automated extraction from PDF, Excel, Word, and PowerPoint documents
+- **Progressive Enhancement**: Analysis reports continuously improve with each new document
 
-### 2. AI-Powered Insights
-- **Executive Summaries**: GPT-4 generated comprehensive investment overviews
-- **Investment Thesis**: Automated development of investment rationale and opportunity assessment
-- **Recommendations**: Clear DEEP DIVE/PURSUE/PASS recommendations with supporting evidence
-- **Financial Highlights**: Key metrics extraction and trend analysis
+### 2. Specialized AI Agents
+- **Executive Summary Agent**: Synthesizes company overviews from document collections
+- **Financial Analysis Agent**: Extracts metrics and trends from financial documents
+- **Market Analysis Agent**: Processes industry reports and competitive intelligence
+- **Investment Thesis Agent**: Develops investment rationale based on accumulated evidence
+- **Recommendation Agent**: Provides DEEP DIVE/PURSUE/PASS decisions with document citations
 
-### 3. Workflow Automation
-- **n8n Integration**: Sophisticated workflow orchestration for multi-step analysis
-- **Webhook Triggers**: API-based initiation of analysis workflows
-- **Document Processing**: Automated search and analysis of Google Drive documents
-- **Report Generation**: Professional HTML reports with color-coded recommendations
-- **Email Distribution**: Automated delivery to investment team members
+### 3. Living Analysis Reports
+- **Always-Current Analysis**: Reports automatically update when new documents are added
+- **Document Change Tracking**: Version control showing how each document impacts analysis
+- **Evidence-Based Insights**: All analysis points directly cite source documents
+- **Progressive Decision Making**: Investment recommendations strengthen with more document evidence
 
 ## Technical Architecture
 
-### n8n Workflow (ID: EdcGmkQjHRqhcRIX)
-**⚠️ CURRENT STATE**: Workflow is partially implemented and non-functional
+### Document-Driven Workflow Architecture
+**⚠️ NEW ARCHITECTURE**: Transitioning from webhook-based to document-driven system
 
-**Working Components:**
+**Document Monitoring Flow:**
 ```
-Webhook Trigger → Data Validation → Document Search → Web Research → Data Processing
-```
-
-**Broken/Missing Components:**
-```
-[DISCONNECTED] AI Analysis (5 parallel GPT-4 agents) 
-[DISCONNECTED] Report Generation 
-[DISCONNECTED] Email Distribution
+Google Drive Document Changes → Push Notifications → n8n Webhook Handler 
+→ Document Type Detection → Content Extraction → Company Analysis Router 
+→ 5 AI Agents → Living Report Updates → Team Notifications
 ```
 
-**Planned Architecture (Not Currently Working):**
+**Company Folder Structure:**
 ```
-Webhook Trigger → Data Validation → Document Search → Web Research 
-→ AI Analysis (5 parallel GPT-4 agents) → Report Generation → Email Distribution
+Private Equity Analysis/
+├── CompanyA/
+│   ├── 10K_2024.pdf (triggers: Executive, Financial, Market agents)
+│   ├── Q3_earnings.pdf (triggers: Financial, Thesis agents)
+│   └── investor_deck.pptx (triggers: Executive, Recommendation agents)
+├── CompanyB/
+│   ├── financial_model.xlsx (triggers: Financial agent)
+│   └── market_research.pdf (triggers: Market agent)
 ```
 
-### AI Agent Roles
-1. **Executive Summary Agent**: High-level investment overview
-2. **Financial Analysis Agent**: Detailed financial metrics and trends
-3. **Market Analysis Agent**: Competitive positioning and market dynamics
-4. **Investment Thesis Agent**: Strategic opportunity assessment
-5. **Recommendation Agent**: Actionable next steps and decision support
+### AI Agent Integration
+**Document-Responsive Agents:**
+1. **Executive Summary Agent**: Updates company overviews with new document insights
+2. **Financial Analysis Agent**: Processes financial documents for metrics extraction
+3. **Market Analysis Agent**: Analyzes market intelligence documents
+4. **Investment Thesis Agent**: Refines investment rationale with new evidence
+5. **Recommendation Agent**: Adjusts recommendations based on document-driven insights
 
 ### Integration Points
-- **Google Drive**: Financial document repository
-- **Gmail**: Report distribution system
-- **Brave Search API**: Web-based financial research
-- **OpenAI GPT-4**: Advanced language model for analysis
-- **MCP Servers**: Extended functionality and tool integration
+- **Google Drive API**: Real-time document change monitoring with push notifications
+- **n8n Workflows**: Document processing orchestration and AI agent coordination
+- **Multi-Format Extractors**: PDF, Excel, Word, PowerPoint text extraction
+- **OpenAI GPT-4 & Claude**: Document-aware analysis agents
+- **Living Reports**: Version-controlled analysis that updates with new documents
 
 ## Current Status
 
-### ⚠️ **Critical Notice: Workflow Status**
-**The n8n workflow `EdcGmkQjHRqhcRIX` is currently INCOMPLETE and NON-FUNCTIONAL**
+### 🔄 **Architecture Transition Status**
+**Transitioning from webhook-based to document-driven architecture**
 
-**Validation Results**: 27 errors, 14 warnings - Cannot execute end-to-end analysis
+**Migration Progress**: Moving from manual company input to automated document monitoring
 
-### Partially Implemented Features
-- ✅ **Data Collection Layer**: Webhook trigger, Google Drive search, Brave Search API
-- ✅ **MCP Server Connectivity**: n8n integration via Docker container
-- ⚠️ **AI Analysis Pipeline**: 5 GPT-4 nodes exist but are DISCONNECTED
-- ❌ **Report Generation**: HTML formatter exists but cannot access AI outputs  
-- ❌ **Email Distribution**: Gmail sender configured but not connected to workflow
-- ❌ **Error Handling**: Missing throughout entire workflow
+### Document-Driven Implementation Status
+- 🔧 **In Development**: Google Drive push notification system
+- 🔧 **In Development**: Multi-format document extraction pipeline
+- 🔧 **In Development**: Company-specific folder monitoring
+- ✅ **Designed**: 5 AI agents for document-based analysis
+- ✅ **Designed**: Living analysis report system
+- 📋 **Planning**: Document change tracking and versioning
 
-### Current Development Status
-- 🔧 **Active Development**: Data collection and validation components
-- ⚠️ **Broken**: AI agent orchestration and report generation
-- 🔧 **Needs Implementation**: Node connections, error handling, workflow activation
-- 📋 **Planning Phase**: Enhanced financial metrics extraction
-- 📋 **Planning Phase**: Portfolio monitoring dashboard
-- 📋 **Planning Phase**: Deal flow pipeline management
+### New Architecture Features
+- ✅ **Company Folder Structure**: Each company gets dedicated Drive folder
+- ✅ **Document Processing**: PDF, Excel, Word, PowerPoint extraction
+- ✅ **Real-Time Triggers**: Push notifications for immediate analysis
+- 🔧 **AI Agent Enhancement**: Document-aware analysis prompts
+- 🔧 **Living Reports**: Progressive analysis improvement with new documents
+- 📋 **Version Control**: Track how each document impacts analysis
 
-### Planned Features
-- 📋 Real-time market data integration
-- 📋 Advanced risk scoring models
-- 📋 Portfolio optimization recommendations
-- 📋 Automated due diligence checklists
-- 📋 Integration with financial data providers (Bloomberg, Reuters)
+### Enhanced Capabilities (Document-Driven)
+- 📋 **Document History Analysis**: Trend analysis across document timeline
+- 📋 **Multi-Company Comparison**: Cross-folder comparative analysis
+- 📋 **Document Impact Scoring**: Measure how each document changes analysis
+- 📋 **Automated Due Diligence**: Document completeness tracking
+- 📋 **Evidence-Based Recommendations**: All insights cite source documents
 
 ## Use Cases
 
-### Primary Use Case: Investment Analysis
-**Input**: Company name and ticker symbol
-**Process**: Automated research, document analysis, AI evaluation
-**Output**: Comprehensive investment report with actionable recommendations
+### Primary Use Case: Document-Driven Investment Analysis
+**Input**: Financial documents uploaded to company-specific Google Drive folders
+**Process**: Real-time document monitoring, multi-format extraction, AI agent analysis
+**Output**: Living investment analysis that evolves with each new document
+
+**Example Workflow:**
+1. Upload 10-K filing to "CompanyA" folder → Triggers financial analysis update
+2. Add earnings report → Investment thesis refined with new data
+3. Include competitor analysis → Market positioning updated automatically
+4. New investor deck → Executive summary enhanced with latest insights
 
 ### Secondary Use Cases
-- Due diligence automation for potential acquisitions
-- Portfolio company performance monitoring
-- Market opportunity identification
-- Competitive intelligence gathering
-- Investment committee preparation
+- **Progressive Due Diligence**: Analysis deepens automatically as documents accumulate
+- **Portfolio Monitoring**: Regular document updates trigger performance re-evaluation  
+- **Document Impact Analysis**: Track how each new document changes investment outlook
+- **Multi-Company Intelligence**: Cross-folder analysis for portfolio comparison
+- **Evidence-Based Reporting**: All analysis claims supported by document citations
 
 ## Technology Stack
 

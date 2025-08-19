@@ -1,0 +1,11 @@
+# Task ID: 15
+# Title: Implement Company Folder Routing System
+# Status: pending
+# Dependencies: 13, 14, 2
+# Priority: high
+# Description: Build intelligent routing logic that identifies which company a document belongs to based on folder structure and triggers the appropriate analysis workflow for that specific company's portfolio.
+# Details:
+Implement company folder routing system using pattern matching and folder hierarchy analysis: 1) Create FolderMappingService using Node.js/TypeScript that analyzes Google Drive folder structures to identify company associations through folder names, paths, and metadata. 2) Implement CompanyIdentificationEngine with fuzzy string matching (using libraries like fuse.js) to match folder names against known company names, subsidiaries, and aliases stored in PostgreSQL company_mappings table. 3) Build RoutingDecisionEngine that evaluates folder depth, naming conventions, and parent folder context to determine confidence scores for company associations. 4) Create workflow routing logic that dynamically selects appropriate n8n workflow based on company type (PE firm, portfolio company, sector-specific analysis) and document type. 5) Implement fallback mechanisms for unidentified folders with manual review queue and confidence threshold settings (default 85% confidence required for automatic routing). 6) Add folder structure caching with Redis to optimize repeated lookups and implement webhook integration to update routing rules when folder structures change. 7) Create audit logging for all routing decisions with reasoning and confidence scores stored in routing_audit_log table.
+
+# Test Strategy:
+Test folder pattern recognition with sample company folder structures across different naming conventions, validate fuzzy matching accuracy with company name variations and abbreviations, test routing confidence scoring with edge cases like shared folders and nested company structures, verify workflow selection logic with different company types and document combinations, test fallback behavior with unknown folder structures, validate caching performance with large folder hierarchies, test audit logging completeness and routing decision traceability, verify integration with existing Google Drive monitoring system.

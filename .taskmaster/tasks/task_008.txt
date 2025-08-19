@@ -1,0 +1,11 @@
+# Task ID: 8
+# Title: Create Processing Status Dashboard
+# Status: pending
+# Dependencies: 5
+# Priority: medium
+# Description: Build monitoring dashboard for queue status, processing metrics, and system health monitoring.
+# Details:
+Create monitoring dashboard using modern web framework (React/Vue.js with Chart.js or D3.js for visualization). Implement real-time dashboard showing: 1) Queue depth and processing status, 2) Average processing times by stage, 3) Error rates and retry statistics, 4) AI agent response times and success rates, 5) System health metrics (database connections, memory usage). Create REST API endpoints using Node.js/Express or Python/FastAPI to serve dashboard data from PostgreSQL analytics queries. Implement WebSocket connections for real-time updates. Add alerting thresholds (queue depth >50, error rate >5%, processing time >10 minutes). Include historical performance charts and trend analysis. Add administrative controls for manual queue management (pause/resume processing, manual retries, priority adjustment).
+
+# Test Strategy:
+Test real-time data updates, validate chart accuracy with sample data, test alert threshold triggers, verify API endpoint performance, test dashboard responsiveness under load, validate administrative controls functionality.

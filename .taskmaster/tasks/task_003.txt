@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Replace Webhook Trigger with Schedule Trigger
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Convert n8n workflow EdcGmkQjHRqhcRIX from webhook trigger to 30-second polling schedule trigger with database integration.
+# Details:
+Replace the webhook trigger node with Schedule Trigger node configured for 30-second intervals (following n8n 2024 best practices). Configure timezone settings properly using workflow-level timezone configuration. Implement database polling logic using PostgreSQL node with optimized query: 'SELECT * FROM analysis_request_queue WHERE status = 'pending' ORDER BY priority DESC, created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED'. Add conditional logic to check if queue item exists before proceeding with workflow execution. Implement status updates throughout pipeline using 'UPDATE analysis_request_queue SET status = $1, processing_started_at = NOW() WHERE id = $2'. Configure error handling with proper try-catch blocks and status rollback mechanisms. Ensure proper connection management and query optimization for high-frequency polling.
+
+# Test Strategy:
+Test schedule trigger activation/deactivation, validate polling query performance under load, test concurrent polling scenarios, verify status update logic, validate timezone handling, test database connection management.

@@ -1,0 +1,11 @@
+# Task ID: 6
+# Title: Reconnect Report Generation Pipeline
+# Status: pending
+# Dependencies: 4
+# Priority: medium
+# Description: Connect the HTML report formatter to AI agent outputs and implement proper data aggregation and formatting.
+# Details:
+Repair the connection between AI analysis outputs and HTML report generation. Create data aggregation node using Function node to collect outputs from all 5 AI agents and structure them into unified report format. Implement HTML template using Template node with dynamic content injection for: executive summary, financial highlights, market analysis, investment thesis, and recommendations. Add report metadata (company name, ticker, analysis date, processing time). Implement PDF generation capability using HTML/CSS to PDF conversion. Add report validation to ensure all required sections are present before proceeding to email distribution. Store final report in results_archive table with proper JSONB structure. Include error handling for missing or malformed AI agent outputs with fallback content generation.
+
+# Test Strategy:
+Test report generation with complete AI outputs, validate HTML template rendering, test PDF generation quality, verify report data structure, test handling of missing AI agent outputs, validate report storage in database.

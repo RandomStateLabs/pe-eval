@@ -134,21 +134,34 @@ ln -s ~/.ai-tool-configs/pe-eval/settings.json .claude/settings.json
 ## 📊 Core n8n Workflow: Institutional PE Analysis
 
 ### Workflow ID: EdcGmkQjHRqhcRIX
-The main workflow automates comprehensive private equity investment analysis:
 
+### ⚠️ **CRITICAL STATUS UPDATE**
+**This workflow is currently INCOMPLETE and NON-FUNCTIONAL**
+- **Validation Status**: FAILED (27 errors, 14 warnings)
+- **Working Components**: Data collection only
+- **Broken Components**: AI analysis, report generation, email distribution
+
+### Current Implementation Status:
+
+**✅ WORKING COMPONENTS:**
 1. **Webhook Trigger** - Accepts company name, ticker, and analysis parameters
 2. **Data Collection**:
-   - Search financial documents in Google Drive
-   - Fetch market research and competitive analysis
-   - Web scraping for SEC filings and earnings reports
-3. **AI Analysis Pipeline** (GPT-4 powered):
-   - Executive Summary Generation
-   - Financial Highlights Extraction
-   - Market Analysis & Competitive Positioning
-   - Investment Thesis Development
-   - Actionable Recommendations (DEEP DIVE/PURSUE/PASS)
-4. **Report Generation** - Professional HTML email with color-coded recommendations
-5. **Distribution** - Automated email delivery to investment team
+   - Search financial documents in Google Drive ✅
+   - Fetch market research and competitive analysis ✅  
+   - Web research via Brave Search API ✅
+
+**❌ BROKEN/DISCONNECTED COMPONENTS:**
+3. **AI Analysis Pipeline** (5 GPT-4 agents exist but are DISCONNECTED):
+   - Executive Summary Generation ❌
+   - Financial Highlights Extraction ❌
+   - Market Analysis & Competitive Positioning ❌
+   - Investment Thesis Development ❌
+   - Actionable Recommendations ❌
+4. **Report Generation** - HTML formatter exists but cannot access AI outputs ❌
+5. **Distribution** - Email sender configured but not connected ❌
+
+### Development Priority
+This workflow represents the **planned architecture** but requires significant development work to connect the AI analysis pipeline and report generation components.
 
 ## 🔧 AI Tool Integration
 
@@ -177,23 +190,30 @@ The main workflow automates comprehensive private equity investment analysis:
 
 ## 📚 Learning Objectives
 
-### Technical Skills
-- [ ] n8n workflow orchestration for financial analysis
-- [ ] Multi-agent AI systems for investment research
-- [ ] MCP server integration for enterprise tools
-- [ ] LLM orchestration (GPT-4, Claude) for financial insights
-- [ ] API integration (Brave Search, Google Drive, Gmail)
-- [ ] Webhook-based automation triggers
-- [ ] Structured data extraction from financial documents
+### Technical Skills (Current Status)
+- [x] **Basic n8n workflow setup** - Data collection components working
+- [ ] **Complete n8n workflow orchestration** - AI pipeline needs connection
+- [ ] **Multi-agent AI systems** - Agents exist but disconnected
+- [x] **MCP server integration** - n8n MCP server functional
+- [ ] **LLM orchestration** - GPT-4 nodes configured but not connected
+- [x] **API integration** - Google Drive, Gmail, Brave Search APIs configured
+- [x] **Webhook-based triggers** - Webhook endpoint functional
+- [ ] **End-to-end workflow execution** - Critical components disconnected
 
-### Private Equity Automation Goals
-- [ ] Automated company financial analysis (10-K, 10-Q, earnings reports)
-- [ ] Market research and competitive landscape assessment  
-- [ ] Investment thesis generation with AI insights
-- [ ] Risk assessment and due diligence automation
-- [ ] Portfolio monitoring and performance tracking
-- [ ] Automated investment recommendation reports
-- [ ] Deal flow pipeline management
+### Private Equity Automation Goals (Current Status)
+- [ ] **Automated financial analysis** - Data collection works, AI analysis broken
+- [ ] **Market research automation** - Data collection works, analysis broken  
+- [ ] **Investment thesis generation** - AI components exist but disconnected
+- [ ] **Risk assessment automation** - Not yet implemented
+- [ ] **Portfolio monitoring** - Planning phase
+- [ ] **Automated recommendation reports** - Report generation disconnected
+- [ ] **Deal flow pipeline management** - Planning phase
+
+### Immediate Development Priorities
+1. **Fix n8n workflow connections** - Connect AI agents to data pipeline
+2. **Implement error handling** - Add proper error handling throughout
+3. **Test end-to-end execution** - Validate complete workflow functionality
+4. **Activate workflow** - Enable for production testing
 
 ## 🤝 Contributing
 

@@ -66,18 +66,26 @@ task-master models --setup
 claude  # Start Claude Code session
 ```
 
-### First Analysis
+### First Analysis - ⚠️ CURRENTLY NOT FUNCTIONAL
+**Before attempting analysis, be aware:**
+- Workflow `EdcGmkQjHRqhcRIX` is INCOMPLETE and will NOT produce reports
+- Only data collection components are working
+- AI analysis and report generation are BROKEN
+
+**For development/testing data collection only:**
 1. Open n8n dashboard
 2. Import workflow ID: `EdcGmkQjHRqhcRIX`
-3. Configure webhook trigger
-4. Send test request:
+3. Configure webhook trigger (if attempting to test data collection)
+4. Send test request (will only collect data, not generate analysis):
 ```json
 {
-  "company": "Apple Inc",
+  "company_name": "Apple Inc",
   "ticker": "AAPL",
-  "analysisType": "comprehensive"
+  "analysis_depth": "deep_dive"
 }
 ```
+
+**Expected Result**: Data collection will work, but workflow will fail at AI analysis step.
 
 ---
 
@@ -123,19 +131,35 @@ claude  # Start Claude Code session
 ### 1. n8n Workflow Engine
 **Workflow ID**: `EdcGmkQjHRqhcRIX`
 
-#### Workflow Nodes
-1. **Webhook Trigger** - Accepts analysis requests
-2. **Data Validator** - Ensures required fields present
-3. **Google Drive Search** - Finds financial documents
-4. **Brave Search** - Web-based market research
-5. **GPT-4 Analysis Agents** (5 parallel):
-   - Executive Summary Generator
-   - Financial Metrics Analyzer
-   - Market Intelligence Agent
-   - Investment Thesis Developer
-   - Recommendation Engine
-6. **Report Builder** - Combines AI outputs
-7. **Email Sender** - Distributes final report
+### ⚠️ **CRITICAL WORKFLOW STATUS**
+**Current State**: INCOMPLETE/BROKEN - Cannot execute end-to-end PE analysis
+**Validation Status**: FAILED (27 errors, 14 warnings)
+**Workflow Active**: NO
+
+#### Actual Workflow Nodes (13 total)
+
+**✅ WORKING NODES:**
+1. **PE Analysis Trigger** (webhook) - Accepts POST requests to `/institutional-pe-analysis`
+2. **Extract & Validate Input** (code) - Validates company_name, ticker, analysis parameters
+3. **Search Financial Documents** (googleDrive) - Searches Drive for financial documents
+4. **Search Market Research** (googleDrive) - Searches Drive for market research
+5. **Web Financial Research** (httpRequest) - Brave Search API for web research
+6. **Process Document Data** (code) - Consolidates all collected data
+
+**❌ DISCONNECTED/BROKEN NODES:**
+7. **📊 Executive Summary AI** (openAI) - GPT-4 agent (NOT CONNECTED)
+8. **💰 Financial Highlights AI** (openAI) - GPT-4 agent (NOT CONNECTED)
+9. **🌍 Market Analysis AI** (openAI) - GPT-4 agent (NOT CONNECTED)
+10. **⚖️ Investment Thesis AI** (openAI) - GPT-4 agent (NOT CONNECTED)
+11. **🎯 Recommendations AI** (openAI) - GPT-4 agent (NOT CONNECTED)
+12. **📧 Institutional HTML Formatter** (code) - Report generation (NOT CONNECTED)
+13. **📤 Send Institutional Email** (gmail) - Email distribution (NOT CONNECTED)
+
+#### Critical Issues
+- **Missing Connections**: AI agents cannot receive data from processing step
+- **Broken Pipeline**: HTML formatter cannot access AI outputs
+- **No Error Handling**: All external service calls lack error handling
+- **Inactive State**: Workflow cannot be triggered in current state
 
 #### Configuration Variables
 ```javascript

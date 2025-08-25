@@ -2,657 +2,139 @@
   "master": {
     "tasks": [
       {
-        "id": 1,
-        "title": "Design Database Schema for Queue System",
-        "description": "Create comprehensive PostgreSQL database schema for analysis request queue system with hybrid storage architecture to handle large PE documents, optimized JSONB indexing, and proper status tracking with performance-aware design.",
-        "status": "pending",
+        "id": 18,
+        "title": "Implement Google Drive Time-Series State Database with Google Sheets API",
+        "description": "Create append-only time-series database using Google Sheets API to track financial metrics evolution for delta intelligence calculations with automatic company-specific sheet creation and metric history tracking.",
+        "details": "Implement enterprise-grade time-series state management using Google Sheets API v4 with 2025 best practices: 1) Create StateDatabase service using googleapis Node.js client v118+ with OAuth2 service account authentication and proper scopes (spreadsheets, drive.file). 2) Design schema with company-specific spreadsheets containing separate sheets for revenue_history, valuation_history, kpi_snapshots, and document_lineage with standardized column structures (timestamp, document_source, metric_value, unit, confidence, extracted_by, context). 3) Implement append-only operations using batchUpdate API for atomic multi-row insertions with proper error handling and retry logic using exponential backoff (max 3 retries, 2^n second delays). 4) Build MetricExtractor service with regex patterns for financial metrics (revenue: /revenue[:\\s]*\\$?([0-9,]+(?:\\.[0-9]+)?)\\s*([kmb]illion?|[kmb]|million?)?/i, valuation, ARR, burn_rate) with confidence scoring based on pattern match quality. 5) Create automatic spreadsheet provisioning for new companies with template-based sheet creation and proper sharing permissions. 6) Implement data validation with duplicate detection using content hashes and data integrity checks. 7) Add batch processing capabilities for handling multiple metric updates per document with transaction-like behavior using Google Sheets batch operations. 8) Include comprehensive error handling for API quotas (100 requests/100 seconds/user), network failures, and authentication token refresh with circuit breaker pattern. 9) Add monitoring and logging using structured logging (Winston or Pino) with performance metrics and API usage tracking.",
+        "testStrategy": "Test Google Sheets API authentication with service account and proper scope validation, validate company-specific spreadsheet creation with template structure, test metric extraction accuracy with sample financial documents achieving >95% success rate on known patterns, verify append-only operations with concurrent access scenarios and race condition handling, test batch processing performance with 100+ metric updates, validate error handling with API quota exhaustion and network failures, test data integrity with duplicate detection and validation logic, benchmark API performance under load with proper rate limiting, verify monitoring and alerting functionality with comprehensive metrics collection.",
+        "priority": "high",
         "dependencies": [],
-        "priority": "high",
-        "details": "Design PostgreSQL database schema with hybrid storage architecture to avoid TOAST performance degradation for large PE documents (>2KB). Core tables: 1) analysis_request_queue (UUID primary key, lightweight request_metadata JSONB, document_size_mb decimal, processing_tier enum, status enum, priority int, created_at/updated_at timestamps, retry_count int, processing_started_at timestamp), 2) document_content (UUID primary key, request_id FK, content_data BYTEA for large document storage, content_hash varchar, compression_type enum), 3) processing_status (UUID primary key, request_id FK, step_name varchar, status enum, step_data JSONB, completed_at timestamp), 4) results_archive (UUID primary key, original_request_id FK, final_report JSONB, email_sent boolean, archived_at timestamp). Implement table partitioning by processing_tier (standard/large/enterprise) for optimal performance at scale. Use hybrid indexing strategy with jsonb_path_ops for metadata and BTREE indexes for size-based routing.",
-        "testStrategy": "Validate schema creation with PostgreSQL 15+ compatibility, test hybrid storage performance with documents >2KB vs <2KB (target <50ms for polling queries), verify TOAST avoidance, test partitioning performance across tiers, validate foreign key constraints, test concurrent insert/update scenarios, validate index usage with EXPLAIN ANALYZE on size-based routing queries.",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Define Database Table Schemas with UUID and JSONB Structure",
-            "description": "Create PostgreSQL table definitions for analysis_request_queue, processing_status, and results_archive with proper UUID primary keys, JSONB columns, and enum status fields.",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Design three core tables: 1) analysis_request_queue table with UUID primary key, request_data JSONB column for storing company analysis parameters, status enum (pending, processing, completed, failed, cancelled), priority integer field, created_at/updated_at timestamps, retry_count integer, and processing_started_at timestamp. 2) processing_status table with UUID primary key, request_id foreign key, step_name varchar for tracking workflow steps, status enum for each processing step, step_data JSONB for storing step-specific information, and completed_at timestamp. 3) results_archive table with UUID primary key, original_request_id foreign key, final_report JSONB for storing complete analysis results, email_sent boolean flag, and archived_at timestamp. Include proper data types, constraints, and column documentation.",
-            "testStrategy": "Validate table creation with PostgreSQL 15+ syntax, verify UUID extension installation, test JSONB column functionality, validate enum types creation, confirm foreign key relationships work correctly, and test basic CRUD operations on each table."
-          },
-          {
-            "id": 2,
-            "title": "Implement JSONB Performance Indexing Strategy",
-            "description": "Create optimized GIN and expression indexes for JSONB columns to enable fast querying and filtering of queue data.",
-            "status": "pending",
-            "dependencies": [
-              1
-            ],
-            "details": "Implement comprehensive JSONB indexing strategy using jsonb_path_ops for containment queries on request_data column for optimal performance. Create expression indexes on frequently queried JSON paths: (request_data->>'company_name'), (request_data->>'ticker'), (request_data->>'analysis_depth'). Add partial indexes for active queue items where status IN ('pending', 'processing'). Create composite indexes on (status, priority, created_at) for optimal polling queries and (request_id, step_name) for processing status lookups. Configure TOAST storage optimization for large JSONB documents to handle large analysis data efficiently.",
-            "testStrategy": "Test index usage with EXPLAIN ANALYZE on sample queries, benchmark query performance with and without indexes, verify containment queries use jsonb_path_ops indexes, test partial index selectivity, and validate TOAST storage with large JSONB documents."
-          },
-          {
-            "id": 3,
-            "title": "Design Queue Status and Priority Management System",
-            "description": "Define comprehensive status enumeration types and priority management logic for efficient queue processing and workflow tracking.",
-            "status": "pending",
-            "dependencies": [
-              1
-            ],
-            "details": "Create PostgreSQL enum types for analysis_status (pending, processing, completed, failed, cancelled, retry) and processing_step_status (queued, running, completed, error, skipped). Implement priority system with integer values (1=highest, 5=lowest priority) with default priority logic based on analysis type. Design status transition rules and validation constraints to ensure proper workflow progression. Add retry logic tracking with exponential backoff calculations. Include audit fields for status change tracking and processing time measurements. Design queue polling logic to fetch next available items ordered by priority and creation time.",
-            "testStrategy": "Validate enum type creation and constraints, test status transition logic, verify priority ordering in queue queries, test retry count incrementing, validate audit trail functionality, and confirm polling queries return items in correct order."
-          },
-          {
-            "id": 4,
-            "title": "Create Database Utility Functions and Triggers",
-            "description": "Implement PostgreSQL functions and triggers for automatic timestamp management, status validation, and queue maintenance operations.",
-            "status": "pending",
-            "dependencies": [
-              3
-            ],
-            "details": "Create utility functions for queue management: update_timestamp() trigger function for automatic updated_at maintenance, validate_status_transition() function to enforce proper status changes, calculate_processing_duration() function for performance metrics. Implement cleanup functions: archive_completed_requests() for moving old completed requests to archive, purge_old_archives() for data retention management. Add queue maintenance functions: get_next_queue_item() for atomic queue polling, update_processing_status() for workflow step tracking. Create database triggers: BEFORE UPDATE trigger on analysis_request_queue for timestamp and validation, AFTER INSERT trigger on processing_status for workflow tracking.",
-            "testStrategy": "Test all functions with various input scenarios, verify trigger execution on table operations, validate atomic queue polling under concurrent access, test status validation rules, confirm cleanup functions work correctly with test data, and verify performance impact of triggers."
-          },
-          {
-            "id": 5,
-            "title": "Configure Connection Pooling and Performance Settings",
-            "description": "Set up production-ready PostgreSQL configuration with connection pooling, performance tuning, and monitoring for queue system workloads.",
-            "status": "pending",
-            "dependencies": [
-              2,
-              4
-            ],
-            "details": "Configure PostgreSQL performance settings optimized for queue workloads: shared_buffers=25% of available RAM, effective_cache_size=75% of RAM, work_mem=4MB for sorting operations, checkpoint_completion_target=0.9 for write performance. Set up PgBouncer connection pooling with transaction pooling mode, pool_size=25 connections, max_client_conn=100 for handling concurrent queue operations. Configure monitoring with pg_stat_statements extension for query performance tracking. Set up proper connection limits, timeouts, and reconnection logic. Include backup and recovery configuration for production deployment. Add performance monitoring queries for queue metrics and processing times.",
-            "testStrategy": "Test connection pooling under high concurrency, validate PostgreSQL settings with realistic workloads, verify monitoring data collection, test backup and recovery procedures, benchmark queue polling performance with configured settings, and confirm connection handling during peak loads."
-          },
-          {
-            "id": 6,
-            "title": "Design Hybrid Storage Architecture for Large Documents",
-            "description": "Implement hybrid storage solution to avoid TOAST performance degradation for PE documents exceeding 2KB JSONB limits.",
-            "status": "pending",
-            "dependencies": [
-              1
-            ],
-            "details": "Create document_content table with UUID primary key, request_id foreign key, content_data BYTEA column for large document storage, content_hash varchar for integrity verification, compression_type enum (none, gzip, lz4), and created_at timestamp. Modify analysis_request_queue to store only lightweight request_metadata JSONB (company info, analysis parameters) while referencing large content separately. Implement size detection logic to automatically route documents >2KB to BYTEA storage. Add content_reference_id column to link queue items with their document content. Design compression strategy for large documents to optimize storage and transfer performance. Include content validation and hash verification for data integrity.",
-            "testStrategy": "Test performance comparison between JSONB vs BYTEA storage for documents >2KB, validate content integrity with hash verification, test compression ratios and performance impact, verify foreign key relationships, benchmark query performance avoiding TOAST storage, and test concurrent access to document content."
-          },
-          {
-            "id": 7,
-            "title": "Implement Size-Based Queue Routing and Processing Tiers",
-            "description": "Add document size tracking and processing tier classification for optimal resource allocation and performance.",
-            "status": "pending",
-            "dependencies": [
-              6
-            ],
-            "details": "Add document_size_mb decimal column to analysis_request_queue for accurate size tracking. Create processing_tier enum (standard, large, enterprise) with automatic classification: standard (<5MB), large (5-50MB), enterprise (>50MB). Implement size calculation functions for both JSONB metadata and BYTEA content. Add tier-based routing logic in queue polling to direct documents to appropriate processing lanes. Create composite indexes on (processing_tier, status, priority, created_at) for efficient tier-based queries. Design tier-specific timeout and retry policies. Add monitoring metrics for size distribution and tier performance. Include tier-based resource allocation recommendations for processing workers.",
-            "testStrategy": "Test automatic tier classification with various document sizes, validate tier-based queue polling performance, verify size calculation accuracy, test composite index usage with EXPLAIN ANALYZE, validate tier-specific timeout handling, and benchmark processing performance across different tiers."
-          },
-          {
-            "id": 8,
-            "title": "Implement Table Partitioning by Processing Tier",
-            "description": "Set up PostgreSQL table partitioning to optimize performance for different document processing tiers at enterprise scale.",
-            "status": "pending",
-            "dependencies": [
-              7
-            ],
-            "details": "Implement range partitioning on analysis_request_queue table by processing_tier enum values. Create separate partitions: queue_standard for standard tier documents, queue_large for large tier documents, queue_enterprise for enterprise tier documents. Configure partition pruning for optimal query performance when filtering by tier. Implement partition-wise joins between queue and processing_status tables. Add automated partition maintenance procedures for adding/dropping partitions as needed. Create tier-specific indexes on each partition for optimal performance. Design partition-aware backup and maintenance strategies. Include monitoring for partition size and performance metrics.",
-            "testStrategy": "Test partition pruning with tier-specific queries, validate partition-wise join performance, verify automated partition maintenance, test backup and restore procedures across partitions, benchmark query performance improvements with partitioning, and validate partition constraint enforcement."
-          },
-          {
-            "id": 9,
-            "title": "Optimize Hybrid Indexing Strategy for Performance",
-            "description": "Implement advanced indexing strategy optimized for hybrid storage architecture and 2025 PostgreSQL performance techniques.",
-            "status": "pending",
-            "dependencies": [
-              6,
-              8
-            ],
-            "details": "Replace heavy JSONB indexes with lightweight metadata indexes to avoid TOAST performance cliffs. Create BTREE indexes on document_size_mb and processing_tier for size-based routing. Implement function-based indexes using 2025 PostgreSQL optimization techniques with proper function caching. Add partial indexes per partition for active queue items (status IN ('pending', 'processing')). Create covering indexes to avoid table lookups for common queries. Implement expression indexes on frequently accessed metadata paths while keeping JSONB payload minimal. Add hash indexes for exact-match queries on content_hash. Design index maintenance procedures for partition-aware operations. Include query plan optimization for hybrid storage access patterns.",
-            "testStrategy": "Benchmark query performance with hybrid indexing vs traditional JSONB indexes, test function caching effectiveness, validate partial index selectivity per partition, verify covering index usage with EXPLAIN ANALYZE, test index maintenance procedures, and measure overall performance improvements avoiding TOAST storage."
-          }
-        ]
+        "status": "pending",
+        "subtasks": []
       },
       {
-        "id": 2,
-        "title": "Implement Database Migration Scripts",
-        "description": "Create production-ready database migration scripts with rollback capability and data preservation for existing PE analysis data.",
-        "details": "Create database migration scripts using PostgreSQL-compatible migration framework (like Flyway or custom SQL scripts). Implement forward migrations: V1__create_analysis_queue_tables.sql, V2__create_indexes.sql, V3__migrate_existing_data.sql. Design rollback scripts for each migration step. Implement data preservation logic to migrate any existing analysis requests from current webhook-based storage to new queue system. Add connection pooling configuration (recommended: pgbouncer with pool_size=25, max_client_conn=100). Include environment-specific configurations for development, staging, and production. Create backup and restore procedures. Add migration validation steps to ensure data integrity during the migration process.",
-        "testStrategy": "Test migrations on copy of production data, validate rollback functionality, verify data integrity before/after migration, test connection pooling under load, validate backup/restore procedures, run migration timing tests.",
+        "id": 19,
+        "title": "Build Real-Time Delta Calculation Engine with Historical Context Integration",
+        "description": "Implement real-time delta calculation system that compares new metrics against historical data to generate instant intelligence about metric changes, trends, and significance with smart alerting for PE teams.",
+        "details": "Build enterprise delta intelligence engine using Node.js/TypeScript with real-time processing capabilities: 1) Create DeltaCalculationService that queries historical metrics from Google Sheets state database and calculates real-time deltas (absolute change, percentage change, time-period analysis) with statistical significance testing using t-tests for trend validation. 2) Implement HistoricalContextService that retrieves 6+ months of metric history and generates trend analysis (linear regression, seasonal patterns, volatility calculations) using mathjs or ml-matrix libraries for statistical computations. 3) Build AlertingEngine with configurable thresholds (default: >10% change or >$1M absolute change) and priority classification (high: >25% or >$5M, medium: 10-25% or $1-5M, low: 5-10% or $500K-1M) with exponential backoff for repeated alerts. 4) Create SignificanceAssessment module that evaluates metric changes against historical volatility and company context using z-score analysis and confidence intervals (95% confidence threshold). 5) Implement TrendDetectionAlgorithms including moving averages (SMA, EMA), momentum indicators, and pattern recognition for identifying acceleration/deceleration in growth rates. 6) Add CompanyBenchmarking service that compares metrics across portfolio companies for relative performance analysis with industry-adjusted scoring. 7) Build NotificationOrchestrator that routes alerts to appropriate stakeholders based on significance levels and company ownership structures with rate limiting (max 5 alerts/hour/company). 8) Implement caching layer using Redis for frequent metric lookups with 1-hour TTL and cache warming strategies for active companies. 9) Add comprehensive monitoring with processing time metrics (<30 seconds target), accuracy tracking, and alert effectiveness measurement.",
+        "testStrategy": "Test delta calculation accuracy with known historical data scenarios and validate statistical significance testing, verify historical context retrieval with 6+ months of sample data and trend analysis accuracy, test alerting engine with various threshold configurations and priority classifications, validate significance assessment with statistical confidence intervals and z-score calculations, test trend detection algorithms with synthetic time-series data covering various patterns (growth, decline, volatility), verify company benchmarking accuracy with multi-company datasets, test notification orchestration with rate limiting and stakeholder routing logic, validate caching performance with high-frequency metric updates, benchmark processing speed achieving <30-second target for delta calculations, test error handling with missing historical data and API failures.",
         "priority": "high",
         "dependencies": [
-          1
+          18
         ],
         "status": "pending",
         "subtasks": []
       },
       {
-        "id": 3,
-        "title": "Replace Webhook Trigger with Schedule Trigger",
-        "description": "Convert n8n workflow EdcGmkQjHRqhcRIX from webhook trigger to enterprise-grade queue processing with Redis queue mode, implementing 2025 n8n enterprise patterns for high-throughput document analysis.",
-        "status": "pending",
-        "dependencies": [
-          2
-        ],
+        "id": 20,
+        "title": "Enhance AI Agent Pipeline with Delta Intelligence and Historical Context",
+        "description": "Upgrade existing 5 AI agents (Executive Summary, Financial Analysis, Market Analysis, Investment Thesis, Recommendation) plus new State Analysis Agent to process delta intelligence and historical context for more informed investment analysis.",
+        "details": "Enhance AI agent pipeline with delta intelligence capabilities using latest LLM models: 1) Upgrade existing AI agents to GPT-4o-2024-11-20 or Claude-3.5-Sonnet-20241022 for optimal 2025 performance with proper API key rotation and fallback mechanisms. 2) Create new StateAnalysisAgent specialized in delta intelligence with prompts optimized for metric change analysis: 'Analyze {companyName} metric changes: {deltaData}. Historical context: {historicalTrends}. What caused changes? Significance? Investigate priorities? Valuation impact?' with structured output parsing. 3) Modify existing agents to consume delta intelligence: ExecutiveSummaryAgent integrates metric changes into company overview, FinancialAnalysisAgent incorporates trend analysis, MarketAnalysisAgent correlates market changes with performance deltas, InvestmentThesisAgent updates thesis based on metric evolution, RecommendationAgent adjusts recommendations with delta-driven insights. 4) Implement ContextualPromptEngineering that dynamically injects relevant historical data, delta intelligence, and company-specific context into agent prompts with token optimization for maximum context utilization. 5) Build ProgressiveAnalysisFramework where each agent builds upon previous agent outputs while incorporating new delta intelligence, creating compound insights through agent coordination. 6) Add AgentOutputValidation with structured response parsing, confidence scoring, and quality assessment to ensure consistent output formats and actionable insights. 7) Implement AgentCoordinationService that manages execution order, passes context between agents, and handles partial failures with graceful degradation. 8) Create ResponseSynthesizer that combines all agent outputs with delta intelligence into coherent analysis reports with proper citation of metric changes and historical trends. 9) Add comprehensive monitoring with agent response times, success rates, and output quality metrics with alerting for degraded performance.",
+        "testStrategy": "Test enhanced agents with sample delta intelligence data and validate improved analysis quality compared to baseline, verify StateAnalysisAgent accuracy with various metric change scenarios and historical context integration, validate agent coordination with sequential processing and context passing between agents, test progressive analysis framework with incremental document additions showing compound insight improvement, verify contextual prompt engineering with optimal token utilization and relevant context injection, test agent output validation with structured response parsing and confidence scoring accuracy, validate response synthesis quality combining multiple agent outputs with delta intelligence, benchmark agent response times with target <2 minutes per agent, test error handling with agent failures and graceful degradation scenarios, verify monitoring system with comprehensive metrics collection and performance alerting.",
         "priority": "high",
-        "details": "Transform workflow from webhook-based to enterprise queue processing using n8n 2025 best practices: 1) Enable n8n queue mode with Redis for horizontal scaling and high-throughput processing, 2) Replace webhook trigger with Schedule Trigger configured for optimized intervals with proper timezone handling, 3) Implement atomic queue processing using PostgreSQL with 'SELECT * FROM analysis_request_queue WHERE status = 'pending' ORDER BY priority DESC, created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED' for contention-free operations, 4) Add comprehensive Error Trigger workflows for fault tolerance and retry logic, 5) Implement modular workflow design with standardized naming conventions following enterprise maintainability patterns, 6) Integrate with hybrid storage architecture from Task 1 for large document handling, 7) Add workflow analytics and performance metrics collection for enterprise monitoring, 8) Implement agentic orchestration patterns for AI system coordination, 9) Configure proper connection management and query optimization for high-frequency processing.",
-        "testStrategy": "Test n8n queue mode with Redis under high load scenarios, validate atomic queue processing with concurrent workers, test Error Trigger workflows and retry mechanisms, verify performance metrics collection and monitoring, test integration with hybrid storage architecture, validate modular workflow design and naming conventions, test horizontal scaling capabilities, verify agentic orchestration patterns.",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Configure n8n Queue Mode with Redis",
-            "description": "Enable and configure n8n queue mode with Redis for enterprise-scale horizontal processing",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Set up Redis instance for n8n queue mode, configure n8n environment variables for queue processing (QUEUE_BULL_REDIS_HOST, QUEUE_BULL_REDIS_PORT, EXECUTIONS_MODE=queue), implement queue worker configuration for optimal throughput, configure Redis persistence and memory management for reliability",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "Replace Webhook with Optimized Schedule Trigger",
-            "description": "Convert webhook trigger to Schedule Trigger with enterprise-optimized configuration",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Replace webhook trigger node with Schedule Trigger, configure optimal polling intervals based on queue load, implement proper timezone configuration using workflow-level settings, add conditional logic to prevent unnecessary executions when queue is empty",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "Implement Atomic Queue Processing Logic",
-            "description": "Build PostgreSQL-based atomic queue processing using FOR UPDATE SKIP LOCKED",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Implement optimized PostgreSQL query with FOR UPDATE SKIP LOCKED for atomic queue item selection, add conditional logic to handle empty queue scenarios, implement status update mechanisms throughout processing pipeline, configure proper transaction management for queue operations",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "Create Comprehensive Error Handling Workflows",
-            "description": "Implement Error Trigger nodes and fault-tolerant retry mechanisms",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Add Error Trigger workflows for comprehensive fault tolerance, implement intelligent retry logic with exponential backoff, create error categorization and routing logic, add status rollback mechanisms for failed processing, implement dead letter queue for permanently failed items",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "Implement Modular Workflow Design",
-            "description": "Restructure workflow using standardized naming conventions and modular patterns",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Apply enterprise naming conventions for workflow nodes and variables, implement modular sub-workflow design for reusability, create standardized error handling patterns across modules, implement proper workflow documentation and metadata",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "Integrate Hybrid Storage Architecture",
-            "description": "Connect with Task 1's hybrid storage system for large document processing",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Implement integration with hybrid storage architecture from Task 1, add logic to handle large document references vs inline content, configure proper BYTEA handling for large documents, implement content retrieval optimization for processing pipeline",
-            "testStrategy": ""
-          },
-          {
-            "id": 7,
-            "title": "Add Enterprise Monitoring and Analytics",
-            "description": "Implement comprehensive workflow analytics and performance metrics collection",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Add workflow execution metrics collection, implement processing time tracking and performance analytics, create queue depth and throughput monitoring, add alerting for performance degradation, implement dashboard-ready metrics export",
-            "testStrategy": ""
-          },
-          {
-            "id": 8,
-            "title": "Implement Agentic Orchestration Patterns",
-            "description": "Align workflow with 2025 agentic approach for AI system coordination",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Implement agentic orchestration patterns for AI agent coordination, add intelligent routing logic for different analysis types, create agent state management and coordination mechanisms, implement progressive analysis capabilities for document-aware processing",
-            "testStrategy": ""
-          }
-        ]
+        "dependencies": [
+          19
+        ],
+        "status": "pending",
+        "subtasks": []
       },
       {
-        "id": 4,
-        "title": "Connect Disconnected AI Analysis Pipeline",
-        "description": "Repair and connect the 5 disconnected GPT-4 agents using 2025 agentic orchestration patterns to receive data from the polling system and generate analysis outputs with enterprise-grade coordination and state management.",
-        "status": "pending",
-        "dependencies": [
-          3
-        ],
+        "id": 21,
+        "title": "Implement Advanced Document Processing with Metric Extraction Engine",
+        "description": "Build comprehensive document processing pipeline that extracts structured data and financial metrics from PDF, Excel, Word, and PowerPoint documents with intelligent parsing and confidence scoring.",
+        "details": "Implement advanced document processing microservices using Python 3.11+ with FastAPI framework: 1) Create DocumentTypeDetector using python-magic and file signature analysis with MIME type validation and confidence scoring (>95% accuracy target). 2) Build PDFProcessor using PyMuPDF (fitz) for superior text extraction, camelot-py for table extraction, and easyocr for OCR on scanned documents with layout analysis using pdfplumber for structured content parsing. 3) Implement ExcelProcessor using openpyxl for .xlsx files and xlrd for .xls compatibility, with automatic sheet detection, formula evaluation, and data type inference for financial metrics. 4) Create WordProcessor using python-docx with table extraction, header/paragraph parsing, and metadata extraction including tracked changes and comments. 5) Build PowerPointProcessor using python-pptx for slide content extraction, notes parsing, and embedded chart data extraction with image metadata analysis. 6) Develop MetricExtractionEngine with advanced regex patterns for financial metrics: revenue (/(?:total\\s+)?(?:net\\s+)?revenue[:\\s]*[$]?([0-9,.]+)(?:\\s*([kmbt])?(?:illion)?)?/gi), profit margins (/(?:gross|net|operating)\\s+margin[:\\s]*([0-9.]+)%/gi), growth rates (/(?:revenue|sales)\\s+growth[:\\s]*([0-9.-]+)%/gi) with context-aware validation and unit normalization. 7) Implement ConfidenceScoring based on pattern match quality, document structure, and extraction consistency with machine learning model for accuracy prediction. 8) Add DocumentSanitization with virus scanning using ClamAV, content validation, and suspicious content detection. 9) Create AsyncProcessingQueue using Celery with Redis backend for handling large documents and batch processing with progress tracking and result caching (24-hour TTL).",
+        "testStrategy": "Test document type detection with comprehensive file format samples including corrupted files, validate PDF processing with complex layouts, tables, and scanned documents achieving >90% text extraction accuracy, test Excel processing with multi-sheet workbooks, formulas, and various data types, verify Word processing with tables, embedded objects, and complex formatting, test PowerPoint extraction with various slide layouts and embedded content, validate metric extraction with financial documents achieving >95% accuracy on known patterns, test confidence scoring correlation with actual accuracy on validation dataset, verify document sanitization with malware samples and suspicious content detection, validate async processing performance with concurrent document uploads, benchmark processing speed targets: PDF <30s, Excel <15s, Word <10s, PowerPoint <20s per document.",
         "priority": "high",
-        "details": "Implement cutting-edge agentic orchestration framework for the 5 AI agents: 1) Executive Summary Generator, 2) Financial Highlights Extractor, 3) Market Analysis & Competitive Positioning, 4) Investment Thesis Developer, 5) Actionable Recommendations. Deploy sequential agent pattern with enterprise LLM framework including: agent state management with PostgreSQL persistence, vector embeddings for context preservation between agents, latest GPT-4o or Claude-3.5-Sonnet for optimal performance, agent coordination mechanisms for seamless data flow, comprehensive logging and monitoring for each agent, fault-tolerant orchestration with graceful degradation, integration with hybrid storage architecture for large document processing. Configure each AI Agent node with proper Chat Model connections and implement progressive analysis that builds on previous agent outputs. Add agent response time monitoring, error isolation to prevent cascade failures, and document-aware processing capabilities.",
-        "testStrategy": "Test agentic orchestration framework with sequential agent execution, validate vector embedding context preservation, test agent state management persistence, verify progressive analysis accuracy, test fault-tolerant orchestration under failure scenarios, validate agent coordination mechanisms, test performance optimization and response time monitoring, verify error isolation effectiveness, test integration with hybrid storage architecture.",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Implement Agent State Management System",
-            "description": "Create PostgreSQL-based agent state management for tracking execution status and context across the 5-agent pipeline",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "Deploy Vector Embeddings for Context Preservation",
-            "description": "Implement vector embedding system to maintain analysis context and prevent context bleeding between sequential agents",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "Configure Latest LLM Models (GPT-4o/Claude-3.5-Sonnet)",
-            "description": "Upgrade and configure each AI agent with latest high-performance models for optimal 2025 agentic workflow performance",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "Build Agent Coordination Mechanisms",
-            "description": "Implement enterprise-grade coordination system for seamless data flow and dependency management between agents",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "Implement Progressive Analysis Framework",
-            "description": "Create document-aware processing system that builds analysis progressively, with each agent enhancing previous outputs",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "Deploy Agent Performance Monitoring",
-            "description": "Implement comprehensive monitoring system for agent response times, success rates, and performance optimization",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 7,
-            "title": "Create Fault-Tolerant Orchestration System",
-            "description": "Build error isolation and graceful degradation mechanisms to prevent cascade failures in the agent pipeline",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 8,
-            "title": "Integrate Hybrid Storage Architecture",
-            "description": "Connect agent pipeline with hybrid storage system for efficient large document processing and retrieval",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 5,
-        "title": "Implement Comprehensive Error Handling System",
-        "description": "Add robust error handling with exponential backoff retry logic and comprehensive logging throughout the entire workflow.",
-        "details": "Implement comprehensive error handling using n8n's error workflow feature. Create dedicated error workflow that handles: 1) Database connection failures, 2) AI agent timeouts or API errors, 3) Data transformation errors, 4) Email delivery failures. Implement exponential backoff retry logic using Function nodes with retry_count tracking in database (initial delay: 30s, max_delay: 900s, max_retries: 5). Add status update nodes after each major processing step to track progress in processing_status table. Configure error notifications via email/Slack using error workflow. Implement graceful degradation patterns - if one AI agent fails, continue with available agents and mark partial completion. Add comprehensive logging using HTTP Request nodes to external logging service or database logging table. Create monitoring dashboard queries for error rates, processing times, and queue depths.",
-        "testStrategy": "Test various error scenarios (database timeout, AI API failures, network issues), validate retry logic timing, verify status tracking accuracy, test error notification delivery, validate graceful degradation behavior.",
-        "priority": "medium",
         "dependencies": [
-          4
+          18
         ],
         "status": "pending",
         "subtasks": []
       },
       {
-        "id": 6,
-        "title": "Reconnect Report Generation Pipeline",
-        "description": "Connect the HTML report formatter to AI agent outputs and implement proper data aggregation and formatting.",
-        "details": "Repair the connection between AI analysis outputs and HTML report generation. Create data aggregation node using Function node to collect outputs from all 5 AI agents and structure them into unified report format. Implement HTML template using Template node with dynamic content injection for: executive summary, financial highlights, market analysis, investment thesis, and recommendations. Add report metadata (company name, ticker, analysis date, processing time). Implement PDF generation capability using HTML/CSS to PDF conversion. Add report validation to ensure all required sections are present before proceeding to email distribution. Store final report in results_archive table with proper JSONB structure. Include error handling for missing or malformed AI agent outputs with fallback content generation.",
-        "testStrategy": "Test report generation with complete AI outputs, validate HTML template rendering, test PDF generation quality, verify report data structure, test handling of missing AI agent outputs, validate report storage in database.",
+        "id": 22,
+        "title": "Build Smart Notification System with Priority-Based Alerting",
+        "description": "Create intelligent notification system that sends priority-based alerts for significant metric changes, document updates, and analysis completion with configurable stakeholder routing and delivery confirmation.",
+        "details": "Implement enterprise notification system with intelligent routing and delivery confirmation: 1) Create NotificationClassificationEngine that categorizes alerts by urgency: CRITICAL (>25% metric change or >$5M), URGENT (10-25% or $1-5M), HIGH (5-10% or $500K-1M), NORMAL (document updates), LOW (routine processing) with custom thresholds per company/metric. 2) Build StakeholderRoutingService with role-based delivery: Partners receive CRITICAL/URGENT, Analysts receive HIGH+, Team receives all levels, with escalation paths for unacknowledged critical alerts (15-minute escalation window). 3) Implement MultiChannelDelivery supporting email (SendGrid API), Slack (Webhook API), SMS (Twilio API), and push notifications with delivery preference management per stakeholder. 4) Create NotificationTemplateEngine using Handlebars.js with dynamic content: metric change summaries, historical context, document impact analysis, and actionable next steps with personalized greetings and company-specific branding. 5) Build DeliveryConfirmationTracker with read receipts, click tracking, and response monitoring using webhook callbacks and tracking pixels with 48-hour follow-up for unacknowledged critical alerts. 6) Add RateLimiting service preventing notification spam: max 5 critical alerts/hour/company, 10 urgent/hour, 20 high/hour with intelligent batching for multiple simultaneous changes. 7) Implement NotificationScheduler with timezone-aware delivery (business hours only for non-critical), quiet hours configuration (no notifications 10pm-7am), and weekend/holiday handling with emergency override capabilities. 8) Create NotificationAnalytics tracking delivery rates, open rates, response times, and effectiveness metrics with dashboard reporting for optimization insights. 9) Add comprehensive error handling with retry logic, fallback delivery methods, and dead letter queues for failed notifications.",
+        "testStrategy": "Test notification classification with various metric change scenarios and validate appropriate urgency assignment, verify stakeholder routing with different role configurations and escalation paths, test multi-channel delivery across email, Slack, SMS with delivery confirmation accuracy, validate notification templates with dynamic content rendering and personalization, test delivery confirmation tracking with read receipts and response monitoring, verify rate limiting effectiveness preventing spam while ensuring critical alerts are delivered, test timezone-aware scheduling with business hours and quiet hours configurations, validate analytics tracking with accurate metrics collection and reporting, test error handling with failed deliveries and retry logic, benchmark notification delivery speed with target <2 minutes for critical alerts.",
         "priority": "medium",
         "dependencies": [
-          4
+          19,
+          20
         ],
         "status": "pending",
         "subtasks": []
       },
       {
-        "id": 7,
-        "title": "Restore Email Distribution System",
-        "description": "Reconnect and configure the email distribution system to send generated reports to stakeholders with proper error handling.",
-        "details": "Reconnect the Gmail/Email node to the report generation pipeline. Configure proper email templates with professional formatting including: company analysis summary, attachment of full PDF report, sender authentication, proper subject line formatting. Implement recipient list management with dynamic recipient selection based on analysis type or company category. Add email delivery confirmation tracking and retry logic for failed deliveries. Configure email rate limiting to prevent Gmail API quota exhaustion (max 250 emails/day for free Gmail API). Implement email analytics tracking (delivered, opened, bounced) if using service like SendGrid instead of Gmail. Add proper error handling for email failures with alternative delivery methods (store report for manual distribution). Update database status to mark email_sent boolean in results_archive table.",
-        "testStrategy": "Test email delivery with various recipient configurations, validate PDF attachment handling, test email template rendering, verify delivery confirmation tracking, test rate limiting behavior, validate error handling for delivery failures.",
+        "id": 23,
+        "title": "Create Living Analysis Report System with Version Control",
+        "description": "Build dynamic report generation system that creates version-controlled analysis reports showing document impact, metric evolution, and progressive analysis enhancement with visual delta intelligence dashboards.",
+        "details": "Implement comprehensive report generation system with version control and change tracking: 1) Create ReportVersioningService using PostgreSQL with semantic versioning (major.minor.patch) for tracking significant analysis changes, document additions, and metric updates with complete audit trail and diff capabilities. 2) Build DynamicReportGenerator using React.js/Next.js with server-side rendering that combines AI agent outputs, delta intelligence, and historical context into comprehensive investment analysis reports with interactive visualizations. 3) Implement ChangeVisualizationEngine using Chart.js/D3.js for creating metric evolution charts, trend analysis graphs, confidence interval plots, and document impact timelines with drill-down capabilities and hover tooltips. 4) Create ReportTemplateSystem with customizable layouts: Executive Summary template, Detailed Analysis template, Delta Focus template, and Custom templates with drag-drop section arrangement and company branding. 5) Build DocumentImpactAnalysis that shows how each new document influenced the analysis with before/after comparisons, confidence score changes, and narrative evolution tracking using text similarity algorithms. 6) Implement ReportDistributionPipeline with automated PDF generation using Puppeteer, email distribution with attachment management, and web-based report sharing with access control and expiration dates. 7) Add CollaborationFeatures including comment systems, approval workflows, and stakeholder feedback collection with version-specific discussions and resolution tracking. 8) Create ReportAnalytics measuring report engagement (time spent, sections viewed, downloads), stakeholder feedback scores, and decision impact tracking with effectiveness metrics. 9) Implement CachingStrategy using Redis for frequently accessed reports with smart cache invalidation when new data becomes available and pre-generation of high-priority reports.",
+        "testStrategy": "Test report versioning with multiple document additions and validate proper version increment logic, verify dynamic report generation with comprehensive analysis content and proper formatting, test change visualization accuracy with metric evolution charts and trend analysis, validate report templates with customizable layouts and company branding, test document impact analysis showing before/after comparisons and confidence changes, verify distribution pipeline with PDF generation quality and email delivery, test collaboration features with comment systems and approval workflows, validate report analytics with engagement tracking and effectiveness measurement, test caching performance with smart invalidation and pre-generation strategies, benchmark report generation speed with target <60 seconds for comprehensive reports.",
         "priority": "medium",
         "dependencies": [
-          6
+          20,
+          19
         ],
         "status": "pending",
         "subtasks": []
       },
       {
-        "id": 8,
-        "title": "Create Processing Status Dashboard",
-        "description": "Build monitoring dashboard for queue status, processing metrics, and system health monitoring.",
-        "details": "Create monitoring dashboard using modern web framework (React/Vue.js with Chart.js or D3.js for visualization). Implement real-time dashboard showing: 1) Queue depth and processing status, 2) Average processing times by stage, 3) Error rates and retry statistics, 4) AI agent response times and success rates, 5) System health metrics (database connections, memory usage). Create REST API endpoints using Node.js/Express or Python/FastAPI to serve dashboard data from PostgreSQL analytics queries. Implement WebSocket connections for real-time updates. Add alerting thresholds (queue depth >50, error rate >5%, processing time >10 minutes). Include historical performance charts and trend analysis. Add administrative controls for manual queue management (pause/resume processing, manual retries, priority adjustment).",
-        "testStrategy": "Test real-time data updates, validate chart accuracy with sample data, test alert threshold triggers, verify API endpoint performance, test dashboard responsiveness under load, validate administrative controls functionality.",
+        "id": 24,
+        "title": "Implement Company Portfolio Comparison and Benchmarking System",
+        "description": "Build cross-company analysis system that enables portfolio-wide metric comparison, relative performance benchmarking, and industry-adjusted scoring for strategic portfolio insights.",
+        "details": "Create portfolio-wide comparison and benchmarking system: 1) Build PortfolioAnalyticsEngine that aggregates metrics across all companies in the time-series state database with data normalization for different company sizes, industries, and reporting periods using statistical standardization techniques. 2) Implement CompanyBenchmarking service using quartile analysis, percentile rankings, and peer group identification based on industry, revenue size, and growth stage with automatic peer group updates. 3) Create IndustryAdjustment algorithms that normalize metrics against industry benchmarks using external data sources (Crunchbase API, SEC filings, industry reports) with periodic recalibration and confidence intervals. 4) Build RelativePerformanceScoring with weighted metrics calculation: revenue growth (30%), profitability (25%), market position (20%), efficiency metrics (15%), risk factors (10%) with customizable weighting per portfolio strategy. 5) Implement TrendAnalysisComparison that identifies portfolio-wide patterns, outlier companies, and correlation analysis between company performances with statistical significance testing. 6) Create PortfolioDashboard using React.js with interactive charts showing portfolio distribution, performance heat maps, trend correlation matrices, and drill-down capabilities with real-time updates. 7) Add AlertingSystem for portfolio-level events: new top performer identification, concerning performance divergence, and portfolio risk concentration with automatic stakeholder notifications. 8) Implement ExportCapabilities for portfolio reports in multiple formats (PDF, Excel, PowerPoint) with customizable templates and scheduled distribution to limited partners and stakeholders. 9) Create APIEndpoints for third-party integrations with existing PE firm systems, CRM platforms, and reporting tools with proper authentication and rate limiting.",
+        "testStrategy": "Test portfolio analytics with multi-company datasets and validate data normalization accuracy, verify company benchmarking with quartile analysis and peer group identification, test industry adjustment algorithms with external data integration and confidence intervals, validate relative performance scoring with weighted metrics and customizable weighting, test trend analysis comparison with statistical significance and correlation analysis, verify portfolio dashboard functionality with interactive visualizations and real-time updates, test alerting system with portfolio-level event detection and stakeholder notifications, validate export capabilities with multiple formats and scheduled distribution, test API endpoints with authentication, rate limiting, and third-party integration compatibility.",
         "priority": "medium",
         "dependencies": [
-          5
+          18,
+          19
         ],
         "status": "pending",
         "subtasks": []
       },
       {
-        "id": 9,
-        "title": "Implement End-to-End Integration Testing",
-        "description": "Create comprehensive test suite covering complete workflow execution from queue insertion to report delivery.",
-        "details": "Develop comprehensive test suite using tools like Jest/Mocha for API testing, Playwright for UI testing, and custom n8n workflow testing scripts. Create test scenarios: 1) Full workflow execution with valid company data, 2) Error handling tests for each failure point, 3) Concurrent request processing tests, 4) Database performance tests with high queue volumes, 5) AI agent response validation tests, 6) Email delivery confirmation tests. Implement test data management with representative company dataset (Apple, Microsoft, Tesla, etc.). Create automated test runner that can execute against staging environment. Add performance benchmarking tests to validate 5-minute processing SLA. Implement database cleanup procedures for test data. Create test reporting dashboard showing test coverage, success rates, and performance metrics.",
-        "testStrategy": "Execute full test suite in staging environment, validate test coverage across all workflow paths, verify performance benchmarks meet requirements, test concurrent execution scenarios, validate cleanup procedures.",
-        "priority": "medium",
-        "dependencies": [
-          7
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 10,
-        "title": "Optimize Database Performance and Indexing",
-        "description": "Fine-tune database performance, optimize queries, and implement advanced indexing strategies for production-scale operations using 2025 PostgreSQL optimization techniques for 40-60% performance improvements.",
-        "status": "pending",
-        "dependencies": [
-          9
-        ],
-        "priority": "medium",
-        "details": "Implement cutting-edge PostgreSQL optimization techniques based on 2025 best practices for enterprise-scale queue operations: 1) Configure PostgreSQL settings for n8n workloads (shared_buffers=25% RAM, effective_cache_size=75% RAM, work_mem=4MB, checkpoint_completion_target=0.9), 2) Implement 2025 function caching techniques for 40-60% performance boost on queue operations, 3) Deploy TOAST avoidance strategy with monitoring to prevent 2-10x performance degradation from large documents, 4) Apply latest query restructuring patterns specific to queue workloads with EXPLAIN ANALYZE optimization, 5) Configure advanced connection pooling with PgBouncer fine-tuned for high-frequency queue operations (transaction pooling mode, optimized pool_size), 6) Implement enterprise-scale partition-wise operations for large tables (partition results_archive by date with automated management), 7) Optimize memory management for hybrid storage architecture with BYTEA handling, 8) Add comprehensive performance monitoring with pg_stat_statements, pg_stat_user_tables, TOAST usage tracking, partition performance metrics, and queue efficiency monitoring, 9) Implement automated VACUUM and ANALYZE scheduling for partitioned tables, 10) Configure slow query monitoring, alerting, and connection pool optimization procedures.",
-        "testStrategy": "Run comprehensive performance benchmarks with 1000+ queue items measuring 40-60% improvement targets, validate function caching effectiveness, test TOAST avoidance strategy performance, validate index usage with EXPLAIN ANALYZE on restructured queries, test connection pooling under high-frequency queue operations, verify partition-wise operations performance, validate comprehensive monitoring data collection including TOAST metrics, test automated maintenance procedures for partitioned tables, verify slow query and connection pool monitoring accuracy.",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Configure Advanced PostgreSQL Settings for 2025 Optimization",
-            "description": "Implement cutting-edge PostgreSQL configuration optimized for n8n queue workloads with 2025 performance enhancements",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Configure PostgreSQL settings: shared_buffers=25% RAM, effective_cache_size=75% RAM, work_mem=4MB, checkpoint_completion_target=0.9, plus 2025 memory management optimizations for hybrid storage architecture",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "Implement 2025 Function Caching Techniques",
-            "description": "Deploy advanced PostgreSQL function caching for 40-60% performance boost on queue operations",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Research and implement 2025 function caching techniques specifically for queue polling, status updates, and document retrieval operations to achieve target 40-60% performance improvement",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "Deploy TOAST Avoidance Strategy and Monitoring",
-            "description": "Implement comprehensive TOAST monitoring and optimization to prevent 2-10x performance degradation",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Create TOAST usage monitoring, implement avoidance strategies for large documents, add alerting for TOAST threshold violations, and optimize queries to prevent TOAST access patterns",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "Apply Queue-Specific Query Restructuring",
-            "description": "Restructure queries using latest 2025 optimization patterns for queue workloads",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Analyze and restructure polling queries, status update queries, and document retrieval queries using 2025 optimization patterns. Use EXPLAIN ANALYZE to validate improvements and ensure optimal execution plans",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "Optimize Connection Pooling for High-Frequency Operations",
-            "description": "Fine-tune PgBouncer configuration for high-frequency queue operations",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Configure PgBouncer with transaction pooling mode, optimize pool_size for queue workload patterns, implement connection pool monitoring, and add performance metrics for pool efficiency",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "Implement Enterprise-Scale Partition-Wise Operations",
-            "description": "Deploy advanced partitioning with partition-wise operations for enterprise scale",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Implement partition-wise operations for large tables, create automated partition management for results_archive by date, optimize partition pruning, and implement partition-aware query optimization",
-            "testStrategy": ""
-          },
-          {
-            "id": 7,
-            "title": "Deploy Comprehensive Performance Monitoring",
-            "description": "Implement advanced monitoring with pg_stat_statements and queue-specific metrics",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Configure pg_stat_statements for query performance tracking, implement TOAST usage monitoring, add partition performance metrics, create queue efficiency monitoring, and set up automated alerting for performance degradation",
-            "testStrategy": ""
-          },
-          {
-            "id": 8,
-            "title": "Implement Automated Maintenance for Partitioned Tables",
-            "description": "Create automated VACUUM and ANALYZE scheduling optimized for partitioned architecture",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Implement automated VACUUM and ANALYZE scheduling specifically for partitioned tables, create maintenance procedures for hybrid storage optimization, and add monitoring for maintenance effectiveness",
-            "testStrategy": ""
-          },
-          {
-            "id": 9,
-            "title": "Configure Advanced Query and Connection Monitoring",
-            "description": "Set up slow query monitoring, alerting, and connection pool optimization procedures",
-            "status": "pending",
-            "dependencies": [],
-            "details": "Configure slow query monitoring with 2025 thresholds, implement connection pool monitoring and optimization procedures, create automated alerting for performance issues, and establish optimization procedures for hybrid storage performance",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 11,
-        "title": "Implement Blue-Green Deployment Strategy",
-        "description": "Design and implement zero-downtime deployment process with rollback capabilities for production environment.",
-        "details": "Design blue-green deployment strategy using Docker containers and orchestration tools (Docker Compose or Kubernetes). Create deployment pipeline: 1) Blue environment (current production), 2) Green environment (new version deployment), 3) Database migration coordination between environments, 4) Traffic switching mechanism (nginx load balancer or cloud load balancer), 5) Health check validation before traffic switch, 6) Automated rollback triggers for failed deployments. Implement deployment scripts using infrastructure as code (Terraform or Ansible). Create pre-deployment validation checklist (database connectivity, n8n workflow validation, AI API availability, email service connectivity). Implement monitoring during deployment with automatic rollback triggers. Create post-deployment validation suite to confirm system functionality. Document deployment procedures and emergency rollback processes.",
-        "testStrategy": "Test deployment process in staging environment, validate zero-downtime switching, test automated rollback functionality, verify health check accuracy, test database migration coordination, validate monitoring and alerting during deployment.",
-        "priority": "medium",
-        "dependencies": [
-          10
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 12,
-        "title": "Conduct Production Load Testing and Optimization",
-        "description": "Execute comprehensive load testing with 100+ concurrent requests and optimize system performance for production deployment.",
-        "details": "Conduct comprehensive load testing using tools like Apache JMeter, k6, or Artillery.js. Design load test scenarios: 1) Normal load (10-20 concurrent requests), 2) Peak load (50-75 concurrent requests), 3) Stress load (100+ concurrent requests), 4) Sustained load over 24-hour period. Test various request types: simple company analysis, complex multi-company analysis, error scenarios, retry scenarios. Monitor system metrics: database connection pool usage, n8n workflow execution times, AI API response times, memory usage, CPU utilization. Implement performance optimization based on load test results: horizontal scaling configuration, database read replicas if needed, AI API rate limiting, queue prioritization algorithms. Create performance benchmarking reports and establish production SLA thresholds (95% of requests processed within 5 minutes, 99.5% system uptime, <30 second polling latency). Document scaling procedures for handling traffic spikes.",
-        "testStrategy": "Execute all load test scenarios and validate system stability, verify SLA compliance during peak load, test system recovery after stress conditions, validate monitoring and alerting accuracy under load, test scaling procedures effectiveness.",
-        "priority": "medium",
-        "dependencies": [
-          11
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 13,
-        "title": "Implement Google Drive Push Notification System",
-        "description": "Set up real-time Google Drive API monitoring with push notifications, webhook endpoints, and folder mapping to replace polling-based document change detection with event-driven architecture. Enhanced with 2025 best practices for enterprise-scale event-driven architecture, comprehensive security validation, and integration with hybrid storage systems.",
-        "status": "pending",
-        "dependencies": [
-          2,
-          3,
-          5
-        ],
+        "id": 25,
+        "title": "Build Advanced Security and Audit System for Financial Data",
+        "description": "Implement comprehensive security framework with encryption, audit logging, access control, and compliance features for handling sensitive PE financial documents and analysis data.",
+        "details": "Implement enterprise-grade security and compliance framework: 1) Create DataEncryption service using AES-256-GCM for at-rest encryption of sensitive financial data in PostgreSQL with field-level encryption for PII/financial metrics and key rotation using AWS KMS or Google Cloud KMS with automatic 90-day rotation. 2) Build AccessControlSystem with role-based permissions (Admin, Partner, Analyst, Viewer) and attribute-based access control (ABAC) for company-specific data isolation with multi-factor authentication using TOTP/FIDO2. 3) Implement ComprehensiveAuditLogging capturing all data access, modifications, and system events with immutable log storage using blockchain-based verification or AWS CloudTrail with 7-year retention policy. 4) Create DataLineageTracking that maintains complete chain of custody for financial metrics from document source through analysis to report generation with cryptographic signatures and timestamps. 5) Build ComplianceFramework supporting SOC2 Type II, ISO 27001, and GDPR requirements with automated compliance checks, policy enforcement, and reporting dashboards with quarterly compliance attestation. 6) Implement DataResidency controls ensuring data remains in specified jurisdictions with geographic restrictions and cross-border transfer monitoring using geolocation validation. 7) Add ThreatDetection with anomaly detection for unusual access patterns, failed authentication monitoring, and behavioral analysis using machine learning models with real-time alerting. 8) Create DataRetentionPolicies with automated archival, secure deletion capabilities, and right-to-be-forgotten implementation with cryptographic proof of deletion. 9) Build SecurityDashboard with real-time threat monitoring, compliance status tracking, audit report generation, and incident response workflows with integration to SIEM systems.",
+        "testStrategy": "Test data encryption with field-level encryption validation and key rotation verification, validate access control system with role-based permissions and multi-factor authentication, test audit logging completeness with immutable storage and event tracking, verify data lineage tracking with cryptographic signatures and chain of custody, validate compliance framework with SOC2/ISO27001 controls and automated checks, test data residency controls with geographic restrictions and transfer monitoring, verify threat detection with anomaly identification and behavioral analysis, test data retention policies with secure deletion and proof of deletion, validate security dashboard with real-time monitoring and incident response workflows.",
         "priority": "high",
-        "details": "Implement enterprise-grade Google Drive Push Notification system using Google Cloud Pub/Sub and Drive API v3 with 2025 best practices: 1) Set up Google Cloud Project with Drive API and Cloud Pub/Sub enabled, create service account with domain-wide delegation for company Google Workspace, configure OAuth2 credentials with appropriate scopes (drive.readonly, drive.metadata.readonly). 2) Create Cloud Pub/Sub topic and subscription for Drive notifications, implement push notification channel registration using Drive API's watch() method on company folders with 24-hour expiration handling. 3) Build enterprise webhook endpoint using Express.js/Node.js with comprehensive request validation using X-Goog-Channel-ID, X-Goog-Resource-State, and X-Goog-Resource-URI headers, implement message deduplication and idempotency handling with Redis cache. 4) Develop advanced folder mapping system with PostgreSQL table storing company_id, folder_id, watch_channel_id relationships, implement automatic folder discovery with recursive subfolder monitoring and pattern-based company identification. 5) Create notification processing pipeline that translates Drive change events into analysis queue entries, implement change type filtering (file modifications, additions, deletions), add batch processing for multiple simultaneous changes with notification aggregation to prevent duplicate analysis requests. 6) Implement robust channel renewal system with background job automation for 24-hour expiration cycles, add comprehensive monitoring for expired channels with alerting. 7) Add enterprise-grade error handling for API rate limits (exponential backoff), network timeouts, invalid folder permissions, Pub/Sub delivery failures, and fault-tolerant recovery mechanisms. 8) Implement size-aware processing integration with Task 1's hybrid storage architecture for large document routing, add Redis-based deduplication with 1-hour TTL and performance optimization for high-frequency notifications. 9) Add comprehensive monitoring and alerting system for delivery failures, processing metrics, and channel health with dashboard integration.",
-        "testStrategy": "Test Google Drive API authentication and authorization flows with domain-wide delegation, validate push notification channel creation and 24-hour renewal automation, test webhook endpoint with comprehensive X-Goog header validation using mock Drive notifications, verify folder mapping accuracy across complex company hierarchies with recursive monitoring, test notification processing pipeline with various file change scenarios (create, modify, delete, rename, move), validate deduplication logic with rapid consecutive changes and batch processing, test error handling for API failures, rate limits, and network issues with exponential backoff validation, verify channel renewal automation with monitoring and alerting, test size-aware processing integration with hybrid storage routing, validate enterprise security measures and idempotency handling, test fault-tolerant recovery mechanisms and comprehensive monitoring dashboard functionality.",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Set up Google Cloud Project and Authentication",
-            "description": "Configure Google Cloud Project with Drive API and Cloud Pub/Sub, implement domain-wide delegation for enterprise Google Workspace integration",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 2,
-            "title": "Implement Enterprise Webhook Endpoint with Security Validation",
-            "description": "Build Express.js webhook endpoint with comprehensive X-Goog header validation, request authentication, and enterprise security measures",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 3,
-            "title": "Create Cloud Pub/Sub Infrastructure",
-            "description": "Set up Pub/Sub topic and subscription for Drive notifications with proper IAM roles and message handling configuration",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 4,
-            "title": "Develop Advanced Folder Mapping System",
-            "description": "Implement PostgreSQL-based folder mapping with recursive subfolder monitoring and company identification patterns",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 5,
-            "title": "Build Notification Processing Pipeline with Batch Processing",
-            "description": "Create event-driven processing pipeline with change type filtering, batch processing, and notification aggregation to prevent duplicates",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 6,
-            "title": "Implement Channel Renewal Automation System",
-            "description": "Build background job system for automatic 24-hour channel renewal with monitoring and failure alerting",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 7,
-            "title": "Add Enterprise Error Handling and Resilience",
-            "description": "Implement comprehensive error handling with exponential backoff, rate limit management, and fault-tolerant recovery mechanisms",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 8,
-            "title": "Integrate Size-Aware Processing with Hybrid Storage",
-            "description": "Connect with Task 1's hybrid storage architecture for intelligent routing of large documents based on size detection",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 9,
-            "title": "Implement Redis-Based Deduplication and Caching",
-            "description": "Set up Redis cache for message deduplication with 1-hour TTL and performance optimization for high-frequency notifications",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 10,
-            "title": "Build Comprehensive Monitoring and Alerting System",
-            "description": "Create monitoring dashboard for channel health, delivery failures, processing metrics, and automated alerting for system issues",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          }
-        ]
-      },
-      {
-        "id": 14,
-        "title": "Build Multi-Format Document Processing Pipeline",
-        "description": "Implement comprehensive document processing system for automatic extraction from PDF, Excel, Word, and PowerPoint documents with type detection, content extraction services, and structured data parsing capabilities.",
-        "details": "Implement multi-format document processing pipeline using Python-based microservices architecture: 1) Document Type Detection Service using python-magic library and file signature analysis to identify PDF, DOCX, XLSX, PPTX formats with confidence scoring. 2) PDF Processing using PyPDF2 and pdfplumber for text extraction, tabula-py for table extraction, and pdf2image + pytesseract for OCR on scanned documents. 3) Excel Processing using openpyxl and pandas for structured data extraction, sheet detection, and formula evaluation with support for multiple worksheets. 4) Word Processing using python-docx for text extraction, table parsing, and document structure analysis including headers, paragraphs, and embedded objects. 5) PowerPoint Processing using python-pptx for slide content extraction, text parsing, and image metadata extraction. 6) Unified Content Extraction API using FastAPI with async processing, file upload validation (max 50MB), virus scanning using ClamAV, and structured JSON output with metadata (file type, processing time, confidence scores). 7) Queue Integration with Redis for background processing, job status tracking, and result caching. 8) Error Handling with retry logic, partial extraction support, and detailed logging using structlog. 9) Data Sanitization and validation using pydantic models for consistent output format. Implement containerized deployment using Docker with separate containers for each processing service and shared Redis cache.",
-        "testStrategy": "Test document type detection accuracy with various file formats and corrupted files, validate text extraction quality from sample PDF documents with different layouts and fonts, test Excel processing with complex spreadsheets containing formulas and multiple sheets, verify Word document parsing with tables and embedded images, test PowerPoint slide content extraction with various layouts, validate API performance with concurrent file uploads, test error handling with corrupted and invalid files, verify queue processing with high volume document batches, test memory usage and processing time benchmarks, validate output data structure consistency across all document types.",
+        "dependencies": [],
         "status": "pending",
-        "dependencies": [
-          1,
-          2
-        ],
-        "priority": "high",
         "subtasks": []
       },
       {
-        "id": 15,
-        "title": "Implement Company Folder Routing System",
-        "description": "Build intelligent routing logic that identifies which company a document belongs to based on folder structure and triggers the appropriate analysis workflow for that specific company's portfolio.",
-        "details": "Implement company folder routing system using pattern matching and folder hierarchy analysis: 1) Create FolderMappingService using Node.js/TypeScript that analyzes Google Drive folder structures to identify company associations through folder names, paths, and metadata. 2) Implement CompanyIdentificationEngine with fuzzy string matching (using libraries like fuse.js) to match folder names against known company names, subsidiaries, and aliases stored in PostgreSQL company_mappings table. 3) Build RoutingDecisionEngine that evaluates folder depth, naming conventions, and parent folder context to determine confidence scores for company associations. 4) Create workflow routing logic that dynamically selects appropriate n8n workflow based on company type (PE firm, portfolio company, sector-specific analysis) and document type. 5) Implement fallback mechanisms for unidentified folders with manual review queue and confidence threshold settings (default 85% confidence required for automatic routing). 6) Add folder structure caching with Redis to optimize repeated lookups and implement webhook integration to update routing rules when folder structures change. 7) Create audit logging for all routing decisions with reasoning and confidence scores stored in routing_audit_log table.",
-        "testStrategy": "Test folder pattern recognition with sample company folder structures across different naming conventions, validate fuzzy matching accuracy with company name variations and abbreviations, test routing confidence scoring with edge cases like shared folders and nested company structures, verify workflow selection logic with different company types and document combinations, test fallback behavior with unknown folder structures, validate caching performance with large folder hierarchies, test audit logging completeness and routing decision traceability, verify integration with existing Google Drive monitoring system.",
-        "status": "pending",
-        "dependencies": [
-          13,
-          14,
-          2
-        ],
-        "priority": "high",
-        "subtasks": []
-      },
-      {
-        "id": 16,
-        "title": "Implement Enhanced AI Agent Pipeline for Document-Aware Analysis",
-        "description": "Redesign the 5 AI agents (Executive Summary, Financial Analysis, Market Analysis, Investment Thesis, and Recommendation) to process extracted document data and generate progressive analysis that updates with each new document added to company folders.",
-        "details": "Implement enhanced AI agent pipeline using microservices architecture with progressive analysis capabilities: 1) Create DocumentAwareAnalysisService that maintains company-specific analysis state in PostgreSQL with versioned analysis tables (company_analysis_v1, v2, etc.) storing incremental updates. 2) Redesign ExecutiveSummaryAgent to process structured document data from Task 14's extraction pipeline, maintaining running summary that incorporates new findings while preserving historical context using vector embeddings (OpenAI embeddings or similar). 3) Enhance FinancialAnalysisAgent with document-specific parsers for financial statements, cash flow reports, and budget documents, implementing progressive financial metrics tracking with time-series analysis capabilities. 4) Upgrade MarketAnalysisAgent to correlate market data with document insights, maintaining competitive landscape analysis that updates as new market research documents are added. 5) Refactor InvestmentThesisAgent to build thesis narratives progressively, weighing new document evidence against existing thesis components using confidence scoring algorithms. 6) Enhance RecommendationAgent with decision tree logic that updates recommendations based on cumulative analysis confidence scores and document completeness metrics. 7) Implement AnalysisOrchestrationService that coordinates agent execution based on document types and triggers incremental updates only for affected analysis components. 8) Add DocumentImpactAssessment module that determines which agents need updates when new documents arrive, optimizing processing efficiency. 9) Create AnalysisVersioningSystem with rollback capabilities and audit trails for analysis changes. 10) Integrate with Task 15's routing system to ensure company-specific analysis isolation and proper folder-to-analysis mapping.",
-        "testStrategy": "Test progressive analysis updates with incremental document additions to verify cumulative intelligence improvements, validate analysis versioning and rollback functionality with complex document scenarios, test agent coordination with mixed document types (financial + market research), verify analysis state persistence across system restarts, test concurrent analysis updates for multiple companies, validate document impact assessment accuracy with various file types, test analysis quality improvement metrics over multiple document iterations, verify integration with document processing pipeline from Task 14, test performance with large document sets and complex company portfolios, validate analysis consistency when documents are added out of chronological order.",
-        "status": "pending",
-        "dependencies": [
-          14,
-          15,
-          2
-        ],
-        "priority": "high",
-        "subtasks": []
-      },
-      {
-        "id": 17,
-        "title": "Implement Living Analysis Report System with Version Control and Change Tracking",
-        "description": "Build a dynamic report generation system that automatically updates analysis reports when new documents are processed, maintains comprehensive document change history, and provides clear visualization of how each new document impacts the overall analysis.",
-        "details": "Implement living analysis report system using Node.js/TypeScript with PostgreSQL versioning: 1) Create ReportVersioningService that maintains analysis_reports table with version_id, company_id, report_type, content_json, document_references, and created_at fields, implementing semantic versioning (major.minor.patch) for tracking significant changes vs incremental updates. 2) Build ChangeTrackingEngine that monitors document additions/modifications through Google Drive webhooks (Task 13) and triggers report regeneration, storing change_log entries with before/after snapshots, affected_sections, and impact_scores calculated using text similarity algorithms. 3) Implement ReportGenerationOrchestrator that coordinates with enhanced AI agents (Task 16) to produce updated reports, merging new document insights with existing analysis while preserving historical context and maintaining narrative coherence. 4) Create VisualizationService using D3.js or Chart.js to generate impact visualization dashboards showing document influence maps, analysis evolution timelines, and confidence score trends over time. 5) Build ReportDeliveryPipeline that automatically distributes updated reports via email with change summaries, highlighting new findings and modifications since last version. 6) Implement rollback functionality allowing users to revert to previous report versions and compare different analysis states. 7) Add caching layer using Redis for frequently accessed report versions and implement background processing queue for report generation to avoid blocking user interactions.",
-        "testStrategy": "Test automatic report regeneration when new documents are added to company folders, validate version control functionality by adding multiple documents in sequence and verifying proper version increments, test change tracking accuracy by comparing before/after analysis content and ensuring all modifications are captured, validate visualization rendering with complex change histories and multiple document types, test report delivery pipeline with various stakeholder groups and email configurations, verify rollback functionality by reverting to previous versions and ensuring data integrity, test concurrent report generation scenarios with multiple companies and document updates, validate caching performance with high-frequency report access patterns, test system behavior with corrupted or invalid documents to ensure graceful error handling.",
-        "status": "pending",
-        "dependencies": [
-          13,
-          14,
-          16,
-          2
-        ],
+        "id": 26,
+        "title": "Implement System Performance Monitoring and Optimization Framework",
+        "description": "Build comprehensive monitoring system with performance metrics, health checks, alert management, and automated optimization for production-scale deployment with SLA compliance tracking.",
+        "details": "Create enterprise monitoring and optimization framework: 1) Build ApplicationPerformanceMonitoring (APM) using Prometheus metrics collection, Grafana dashboards, and New Relic/DataDog integration with custom metrics for document processing times, AI agent response times, database query performance, and API endpoint latency with 95th percentile tracking. 2) Implement HealthCheckFramework with deep health checks for all system components: database connectivity, external API availability, Redis cache performance, Google Drive API quotas, AI model endpoints with automated failover and circuit breaker patterns. 3) Create AlertManagement system using AlertManager with intelligent alert routing, escalation policies, and on-call scheduling with PagerDuty integration and alert fatigue prevention through intelligent grouping and suppression. 4) Build PerformanceOptimization engine with automated query optimization, cache warming strategies, connection pool tuning, and resource scaling recommendations based on usage patterns and performance metrics. 5) Implement SLAMonitoring with service level objectives: document processing <5 minutes (95%), AI analysis <10 minutes (95%), system uptime >99.9%, API response time <2 seconds (95%) with automated SLA reporting and breach notifications. 6) Create ResourceUsageTracking for CPU, memory, disk I/O, network bandwidth, and API quota consumption with predictive scaling recommendations and cost optimization insights. 7) Add ErrorTracking and debugging tools with distributed tracing using Jaeger/Zipkin, error aggregation using Sentry, and log analysis with structured logging and correlation IDs. 8) Build CapacityPlanningDashboard with usage trend analysis, growth projections, and infrastructure scaling recommendations with cost impact analysis and approval workflows. 9) Implement AutomatedOptimization with self-healing capabilities, performance tuning recommendations, and proactive maintenance scheduling based on system metrics and usage patterns.",
+        "testStrategy": "Test APM with comprehensive metrics collection and dashboard visualization accuracy, validate health check framework with component failure scenarios and automated failover, test alert management with intelligent routing and escalation policies, verify performance optimization with automated query tuning and scaling recommendations, validate SLA monitoring with service level tracking and breach notifications, test resource usage tracking with predictive scaling and cost optimization, verify error tracking with distributed tracing and error aggregation, test capacity planning with growth projections and scaling recommendations, validate automated optimization with self-healing capabilities and maintenance scheduling.",
         "priority": "medium",
+        "dependencies": [
+          23
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 27,
+        "title": "Create Production Deployment and DevOps Pipeline",
+        "description": "Build complete DevOps infrastructure with CI/CD pipelines, containerization, infrastructure as code, and blue-green deployment for zero-downtime production deployment with comprehensive testing and monitoring.",
+        "details": "Implement comprehensive DevOps and deployment infrastructure: 1) Create ContainerizationStrategy using Docker with multi-stage builds for Node.js/Python services, Alpine Linux base images for security, and proper layer caching for build optimization with image size <500MB per service. 2) Build KubernetesDeployment using Helm charts with HorizontalPodAutoscaler for automatic scaling, resource limits/requests optimization, health checks, and rolling updates with proper service mesh integration using Istio. 3) Implement InfrastructureAsCode using Terraform for cloud resource provisioning (AWS/GCP/Azure) with module-based architecture, state management, and environment-specific configurations with automated drift detection. 4) Create CI/CDPipeline using GitHub Actions or GitLab CI with automated testing (unit, integration, security), code quality checks (ESLint, SonarQube), dependency vulnerability scanning, and automated deployment with approval gates. 5) Build BlueGreenDeployment strategy with traffic shifting, automated rollback triggers, and zero-downtime deployment validation with canary releases for critical updates and A/B testing capabilities. 6) Implement SecretsManagement using HashiCorp Vault or cloud-native solutions (AWS Secrets Manager, Google Secret Manager) with automatic secret rotation, encryption at rest/in-transit, and audit logging. 7) Add DatabaseMigration automation with schema versioning, rollback capabilities, and data migration validation with zero-downtime migration strategies for production environments. 8) Create MonitoringIntegration with deployment tracking, performance impact analysis, and automated rollback triggers based on error rates, latency increases, or custom SLI violations. 9) Build DisasterRecovery procedures with automated backups, cross-region replication, RTO/RPO targets (RTO: <30 minutes, RPO: <5 minutes), and regular disaster recovery testing with documentation and runbooks.",
+        "testStrategy": "Test containerization with multi-stage builds and security scanning, validate Kubernetes deployment with autoscaling and rolling updates, test infrastructure as code with multi-environment provisioning and drift detection, verify CI/CD pipeline with automated testing and quality gates, test blue-green deployment with traffic shifting and automated rollback, validate secrets management with rotation and encryption, test database migration with zero-downtime strategies, verify monitoring integration with deployment tracking and automated rollback, test disaster recovery procedures with RTO/RPO targets and recovery validation.",
+        "priority": "medium",
+        "dependencies": [
+          25,
+          26
+        ],
+        "status": "pending",
         "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-08-19T17:43:42.846Z",
-      "updated": "2025-08-19T20:17:36.131Z",
+      "updated": "2025-08-24T21:35:27.660Z",
       "description": "Tasks for master context"
     }
   }

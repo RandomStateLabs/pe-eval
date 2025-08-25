@@ -1,14 +1,17 @@
-# PE-Eval: Document-Driven Private Equity Analysis Platform
+# PE-Eval: Document-Driven Private Equity Analysis Platform with Delta Intelligence
 
-Real-time document monitoring system that automatically generates living investment analysis when new financial documents are added to company-specific Google Drive folders.
+Real-time document monitoring system that automatically generates living investment analysis with instant metric intelligence when new financial documents are added to company-specific Google Drive folders. The system provides immediate awareness of financial metric changes like "Company revenue increased $10M since last quarter."
 
-## 🎯 Project Goals
+## 🎯 Project Goals (Enhanced with State Management)
 
 1. **Document-Driven Analysis** - Automatically trigger updated analysis when new documents are added to company folders
 2. **Living Intelligence Reports** - Create analysis that evolves and improves with each new document
 3. **Real-Time Monitoring** - Use Google Drive push notifications for instant document change detection
-4. **Multi-Format Processing** - Extract insights from PDF, Excel, Word, and PowerPoint documents
-5. **AI-Powered Insights** - 5 specialized AI agents provide comprehensive document-based analysis
+4. **Multi-Format Processing** - Extract insights and financial metrics from PDF, Excel, Word, and PowerPoint documents
+5. **AI-Powered Insights** - 6 specialized AI agents provide comprehensive document-based analysis with historical context
+6. **NEW - Delta Intelligence** - Real-time financial metric change detection with instant alerts
+7. **NEW - State Management** - Append-only time-series database for comprehensive metric tracking
+8. **NEW - Smart Alerts** - Priority-based notifications for significant metric changes (>10% or >$1M)
 
 ## 🛠 Setup Instructions
 

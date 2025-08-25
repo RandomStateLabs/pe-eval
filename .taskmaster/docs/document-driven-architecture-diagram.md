@@ -66,7 +66,7 @@
                                        │ All Documents Processed
                                        ▼
 ┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│                        DOCUMENT DATA EXTRACTION PIPELINE                                │
+│                   DOCUMENT DATA EXTRACTION + METRIC EXTRACTION PIPELINE                 │
 ├──────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                          │
 │  📄 PDF Parser          📊 Excel Parser         📝 Word Parser                          │
@@ -76,40 +76,78 @@
 │                         │  formulas                                                    │
 │                         └─ Calculate ratios                                             │
 │                                                                                          │
-│  Output: Structured dataset with all company information                                │
+│  🔢 Metric Extraction Engine (NEW)                                                      │
+│  ├─ Revenue pattern recognition ($10M, 40% growth, etc.)                               │
+│  ├─ Valuation extraction (EBITDA multiples, enterprise value)                          │
+│  ├─ KPI identification (customer count, ARR, churn rate)                               │
+│  └─ Date context parsing (Q1 2025, monthly data, etc.)                                 │
+│                                                                                          │
+│  Output: Structured dataset + Extracted Metrics                                        │
 │  • Financial metrics and trends across all periods                                      │
 │  • Market research and competitive intelligence                                         │
 │  • Due diligence findings and management assessment                                     │
 │  • Document metadata and change tracking                                                │
+│  • NEW: Structured metrics with timestamps for state database                          │
 └──────────────────────────────────────────────────────────────────────────────────────────┘
                                        │
-                                       │ Complete Company Dataset
+                                       │ Structured Metrics + Documents
                                        ▼
 ┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│                           AI ANALYSIS PIPELINE (5 AGENTS)                               │
+│                          STATE MANAGEMENT & DELTA CALCULATION                           │
 ├──────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                          │
-│  🧠 Agent 1: Executive Summary Generator                                                │
-│      Input: All documents + trigger context                                             │
-│      Output: Strategic overview highlighting new insights from Q2 financials            │
+│  📊 Google Sheets Time-Series Database                                                  │
+│  ├─ CompanyA-Revenue: [Q1: $40M, Q2: $50M, Q3: $60M]                                  │
+│  ├─ CompanyA-Valuation: [March: $200M, June: $250M, Sept: $300M]                      │
+│  ├─ CompanyA-KPIs: [ARR, Customer_Count, Churn_Rate by month]                          │
+│  └─ CompanyA-Metadata: [Document_triggers, Update_timestamps]                          │
 │                                                                                          │
-│  💰 Agent 2: Financial Deep Dive Analyst                                               │
-│      Input: All financial docs + extracted metrics                                      │
-│      Output: Comprehensive financial analysis with Q1→Q2 trends                        │
+│  ⚡ Delta Calculation Engine                                                            │
+│  ├─ Revenue Change: $50M → $60M = +$10M (+20% QoQ)                                     │
+│  ├─ Significance Score: 20% growth = High significance (>10% threshold)                │
+│  ├─ Historical Context: Accelerating from 15% avg trend                                │
+│  └─ Alert Generation: "CompanyA revenue +$10M - investigate immediately"              │
 │                                                                                          │
-│  🏪 Agent 3: Market & Competitive Intelligence                                          │
-│      Input: Research docs + market analysis + competitive data                          │
-│      Output: Market positioning and competitive landscape assessment                     │
+│  🔔 Smart Alert System                                                                  │
+│  ├─ Significance thresholds: >10% change or >$1M delta                                 │
+│  ├─ Priority scoring: Critical/High/Medium/Low based on impact                         │
+│  ├─ Context enrichment: Historical trends and comparative analysis                     │
+│  └─ Stakeholder routing: Partners for critical, analysts for medium                   │
 │                                                                                          │
-│  🎯 Agent 4: Investment Thesis Developer                                                │
-│      Input: All prior analyses + company dataset                                        │
-│      Output: Updated investment thesis incorporating Q2 performance                     │
+│  Output: Historical Context + Delta Intelligence + Smart Alerts                        │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       │ Metrics + Historical Context + Delta Intelligence
+                                       ▼
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│                      AI ANALYSIS PIPELINE (6 AGENTS + STATE MANAGEMENT)                 │
+├──────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                          │
-│  ✅ Agent 5: Action Items & Next Steps Generator                                        │
-│      Input: Complete analysis + investment thesis                                       │
-│      Output: Specific next steps based on Q2 results                                    │
+│  🧠 Agent 1: Executive Summary Generator with Historical Context                         │
+│      Input: All documents + trigger context + historical metrics + delta analysis      │
+│      Output: Strategic overview highlighting metric changes with historical context      │
 │                                                                                          │
-│  🔄 All agents run in parallel using complete, up-to-date company information          │
+│  💰 Agent 2: Financial Deep Dive Analyst with Delta Intelligence                        │
+│      Input: All financial docs + extracted metrics + historical trend data             │
+│      Output: Financial analysis with Q1→Q2 trends + delta significance assessment      │
+│                                                                                          │
+│  🏪 Agent 3: Market & Competitive Intelligence with Context                             │
+│      Input: Research docs + market analysis + historical market data                    │
+│      Output: Market positioning with historical context and trend analysis             │
+│                                                                                          │
+│  🎯 Agent 4: Investment Thesis Developer with Metric Intelligence                       │
+│      Input: All prior analyses + company dataset + historical performance data         │
+│      Output: Updated investment thesis with metric-driven confidence scoring           │
+│                                                                                          │
+│  ✅ Agent 5: Action Items & Next Steps Generator with Delta Awareness                   │
+│      Input: Complete analysis + investment thesis + delta intelligence alerts          │
+│      Output: Specific next steps based on metric changes and trend significance        │
+│                                                                                          │
+│  📊 Agent 6: State Analysis & Delta Intelligence Engine (NEW)                           │
+│      Input: Current metrics + historical state database + delta calculations           │
+│      Output: Trend analysis, significance scoring, and proactive alerts               │
+│                                                                                          │
+│  🔄 All agents run with access to historical context and real-time delta intelligence   │
 └──────────────────────────────────────────────────────────────────────────────────────────┘
                                        │
                                        │ AI Analysis Complete
@@ -152,16 +190,24 @@
     ↓
 🔍 Extract data from PDFs, Excel files, Word docs
     ↓
-🧠 Run 5 AI agents on complete company dataset
+🔢 Extract structured metrics with LLM pattern recognition
     ↓
-📊 Generate updated analysis report with Q2 insights
+📊 Update Google Sheets state database (CompanyA-Revenue: Q3: $60M)
     ↓
-✉️ Email team: "TechStartup analysis updated with Q2 data"
+⚡ Calculate deltas ($50M → $60M = +$10M/+20%) + significance scoring
     ↓
-💾 Save report to company folder with version history
+🔔 Generate smart alerts ("CompanyA revenue +$10M - investigate")
+    ↓
+🧠 Run 6 AI agents with historical context and delta intelligence
+    ↓
+📊 Generate updated analysis report with delta insights + trend context
+    ↓
+✉️ Email team with priority-based alerts: "TechStartup +$10M revenue (20% growth)"
+    ↓
+💾 Save report + state data with complete audit trail
 ```
 
-## Database Schema for Document Tracking
+## Database Schema for Document Tracking + State Management
 
 ```sql
 -- Track company analysis triggers and status
@@ -177,7 +223,11 @@ CREATE TABLE company_analysis_queue (
   processing_started_at TIMESTAMP,
   completed_at TIMESTAMP,
   report_path VARCHAR(1000), -- Path to generated report
-  analysis_version INTEGER DEFAULT 1
+  analysis_version INTEGER DEFAULT 1,
+  -- NEW: State management fields
+  metrics_extracted JSONB, -- Structured metrics from this analysis
+  delta_alerts JSONB, -- Generated delta alerts
+  significance_score DECIMAL(5,2) -- Overall significance of changes
 );
 
 -- Track individual document processing
@@ -202,26 +252,81 @@ CREATE TABLE analysis_report_history (
   report_path VARCHAR(1000),
   generated_at TIMESTAMP DEFAULT NOW(),
   document_count INTEGER,
-  ai_agent_responses JSONB -- Store all 5 agent outputs
+  ai_agent_responses JSONB, -- Store all 6 agent outputs
+  -- NEW: State management fields
+  historical_context JSONB, -- Historical metrics context used
+  delta_intelligence JSONB, -- Delta analysis and alerts
+  trend_analysis JSONB -- Long-term trend insights
+);
+
+-- NEW: Time-series metric storage (Google Sheets integration)
+CREATE TABLE company_metrics_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_name VARCHAR(255) NOT NULL,
+  metric_name VARCHAR(255) NOT NULL, -- revenue, valuation, customer_count, etc.
+  metric_value DECIMAL(15,2),
+  metric_value_text VARCHAR(500), -- For non-numeric values
+  metric_unit VARCHAR(50), -- dollars, percent, count, etc.
+  time_period VARCHAR(100), -- Q1 2025, March 2025, etc.
+  period_start_date DATE,
+  period_end_date DATE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  source_document VARCHAR(500), -- Document that provided this metric
+  google_sheets_row_id INTEGER, -- Reference to Google Sheets row
+  INDEX idx_company_metric_time (company_name, metric_name, period_start_date)
+);
+
+-- NEW: Delta calculation and alert tracking
+CREATE TABLE metric_deltas (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_name VARCHAR(255) NOT NULL,
+  metric_name VARCHAR(255) NOT NULL,
+  previous_value DECIMAL(15,2),
+  current_value DECIMAL(15,2),
+  delta_absolute DECIMAL(15,2),
+  delta_percentage DECIMAL(8,4),
+  significance_score DECIMAL(5,2), -- 0-10 scale
+  alert_priority VARCHAR(20), -- critical, high, medium, low
+  alert_message TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  previous_period_id UUID REFERENCES company_metrics_history(id),
+  current_period_id UUID REFERENCES company_metrics_history(id)
+);
+
+-- NEW: Google Sheets state database tracking
+CREATE TABLE google_sheets_state (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_name VARCHAR(255) NOT NULL,
+  sheet_type VARCHAR(50), -- revenue, valuation, kpis, metadata
+  google_sheet_id VARCHAR(255),
+  google_sheet_url VARCHAR(1000),
+  last_updated TIMESTAMP DEFAULT NOW(),
+  row_count INTEGER,
+  status VARCHAR(50) DEFAULT 'active' -- active, archived, error
 );
 ```
 
-## Key Benefits of Document-Driven Architecture
+## Key Benefits of Document-Driven Architecture + State Management
 
-### 🎯 **Always-Current Analysis**
+### 🎯 **Always-Current Analysis with Delta Intelligence**
 - **Living Intelligence**: Analysis automatically updates when new information becomes available
 - **No Manual Updates**: Eliminates need for analysts to manually refresh company analysis
 - **Real-Time Insights**: New documents trigger immediate analysis updates within minutes
+- **NEW - Instant Metric Awareness**: Know immediately when key metrics change significantly
 
-### 📚 **Comprehensive Information Usage**  
+### 📚 **Comprehensive Information Usage with Historical Intelligence**  
 - **All Documents Utilized**: Every PDF, Excel file, Word doc automatically incorporated
 - **Historical Context**: Maintains analysis evolution and change tracking over time
 - **Multi-Source Intelligence**: Combines financial, market, and operational data sources
+- **NEW - Time-Series Analysis**: Track metric trends across 6+ months of history
+- **NEW - Delta Context**: Every analysis includes "what changed" with significance scoring
 
-### ⚡ **Efficient PE Workflow Integration**
+### ⚡ **Efficient PE Workflow Integration with Smart Alerting**
 - **Natural Process**: PE teams continue normal document collection workflows
 - **Automatic Processing**: No additional steps required from PE professionals
 - **Smart Notifications**: Team gets alerted only when meaningful changes occur
+- **NEW - Priority-Based Alerts**: Critical changes (>10%/$1M) get immediate attention
+- **NEW - Context-Rich Notifications**: "CompanyA revenue +$10M (+25%) - above 15% trend"
 
 ### 🔄 **Version Control & Audit Trail**
 - **Change Tracking**: Clear history of what triggered each analysis update

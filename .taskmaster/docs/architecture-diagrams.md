@@ -147,30 +147,35 @@ REQUEST INITIATION:
 │                                                                             │
 │  Parallel GPT-4 Agents (5 concurrent threads):                             │
 │                                                                             │
-│  Agent 1: Executive Summary                                                 │
-│  ├─ Input: Complete dataset + analysis parameters                          │
-│  ├─ Processing: Strategic overview generation                               │
-│  └─ Output: 2-page executive summary with key insights                     │
+│  Agent 1: Executive Summary (Enhanced with Historical Context)             │
+│  ├─ Input: Complete dataset + analysis parameters + historical context    │
+│  ├─ Processing: Strategic overview generation with delta intelligence      │
+│  └─ Output: 2-page executive summary with key insights and metric changes │
 │                                                                             │
-│  Agent 2: Financial Highlights                                             │
-│  ├─ Input: Financial data + market comparisons                             │
-│  ├─ Processing: Financial ratio analysis & benchmarking                    │
-│  └─ Output: Financial performance summary with metrics                     │
+│  Agent 2: Financial Highlights (Enhanced with Delta Analysis)             │
+│  ├─ Input: Financial data + market comparisons + metric deltas            │
+│  ├─ Processing: Financial ratio analysis & benchmarking + trend analysis  │
+│  └─ Output: Financial performance summary with metrics and change tracking│
 │                                                                             │
-│  Agent 3: Market & Competitive Analysis                                    │
-│  ├─ Input: Market data + competitive intelligence                          │
-│  ├─ Processing: Market position & competitive dynamics                     │
-│  └─ Output: Market analysis with competitive positioning                   │
+│  Agent 3: Market & Competitive Analysis (Historical Context)              │
+│  ├─ Input: Market data + competitive intelligence + historical trends     │
+│  ├─ Processing: Market position & competitive dynamics with time analysis │
+│  └─ Output: Market analysis with competitive positioning and evolution    │
 │                                                                             │
-│  Agent 4: Investment Thesis                                                │
-│  ├─ Input: All prior analyses + deal parameters                            │
-│  ├─ Processing: Investment rationale development                           │
-│  └─ Output: Clear investment thesis with risk/return analysis             │
+│  Agent 4: Investment Thesis (Enhanced with Metric Intelligence)           │
+│  ├─ Input: All prior analyses + deal parameters + delta analysis          │
+│  ├─ Processing: Investment rationale development with metric impact       │
+│  └─ Output: Clear investment thesis with risk/return analysis & trends    │
 │                                                                             │
-│  Agent 5: Actionable Recommendations                                       │
-│  ├─ Input: Complete analysis + investment thesis                           │
-│  ├─ Processing: Strategic recommendation formulation                       │
-│  └─ Output: Prioritized action items and next steps                       │
+│  Agent 5: Actionable Recommendations (Delta-Aware)                        │
+│  ├─ Input: Complete analysis + investment thesis + significant changes    │
+│  ├─ Processing: Strategic recommendation formulation with delta priorities│
+│  └─ Output: Prioritized action items and next steps based on metric changes│
+│                                                                             │
+│  Agent 6: State Analysis & Delta Intelligence (NEW)                       │
+│  ├─ Input: Extracted metrics + historical database + delta calculations   │
+│  ├─ Processing: Time-series analysis, trend detection, significance scoring│
+│  └─ Output: Delta intelligence insights and metric change recommendations │
 └─────────────────────────────────────────────────────────────────────────────┘
                                      │
                                      v

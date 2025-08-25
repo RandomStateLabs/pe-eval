@@ -1,13 +1,14 @@
 # PE-Eval Project Context Map
 
 ## 📋 Project Overview
-**PE-Eval** is a document-driven AI automation platform for private equity investment analysis, featuring Google Drive monitoring, real-time document processing, and living analysis reports that evolve with new documents.
+**PE-Eval** is a document-driven AI automation platform for private equity investment analysis, featuring Google Drive monitoring, real-time document processing with state management, and living analysis reports that provide instant metric intelligence and evolve with new documents.
 
 ## 🎯 Project Status
-- **Type**: Document-Driven Investment Analysis Platform
-- **Stage**: Architecture Transition Phase (Webhook → Document-Driven)
-- **Primary Focus**: Real-time document monitoring and progressive analysis enhancement
-- **Architecture**: Company-specific Google Drive folders with push notification triggers
+- **Type**: Document-Driven Investment Analysis Platform with Delta Intelligence
+- **Stage**: Architecture Transition Phase (Webhook → Document-Driven + State Management)
+- **Primary Focus**: Real-time document monitoring, metric extraction, delta calculation, and progressive analysis enhancement
+- **Architecture**: Company-specific Google Drive folders with push notification triggers and append-only state database
+- **NEW Enhancement**: Time-series state management for instant metric change detection
 
 ---
 
@@ -134,51 +135,64 @@ cp .env.example .env
 
 ---
 
-## 🔄 Document-Driven Architecture Status
+## 🔄 Document-Driven Architecture Status (Enhanced with State Management)
 
 ### New Architecture Implementation
 - **Document Monitoring**: Google Drive push notifications for real-time triggers
 - **Company Folders**: Each private company has dedicated Google Drive folder structure
-- **Multi-Format Processing**: PDF, Excel, Word, PowerPoint document extraction
-- **Status**: 🔧 **ACTIVE DEVELOPMENT** - Transitioning from webhook to document-driven system
+- **Multi-Format Processing**: PDF, Excel, Word, PowerPoint document extraction with metric parsing
+- **NEW - State Management**: Append-only time-series database for metric tracking
+- **NEW - Delta Intelligence**: Real-time metric change calculation and alerts
+- **Status**: 🔧 **ACTIVE DEVELOPMENT** - Transitioning from webhook to document-driven + state management system
 
 ### 🔄 Architecture Transition Progress
-**Migration Status**: Moving from manual webhook triggers to automated document monitoring
+**Migration Status**: Moving from manual webhook triggers to automated document monitoring with delta intelligence
 
-**New Document-Driven Components:**
+**New Document-Driven + State Management Components:**
 🔧 **Google Drive Webhook Handler**: Receives push notifications for document changes
 🔧 **Company Folder Mapper**: Maps documents to specific company analysis pipelines  
 🔧 **Document Type Classifier**: Identifies and routes PDF, Excel, Word documents
 ✅ **Multi-Format Extractors**: Text extraction from various document formats
-✅ **AI Agent Enhancement**: Document-aware analysis prompts and processing
-🔧 **Living Report System**: Progressive analysis updates with new document insights
+📋 **NEW - Metric Extraction Engine**: Financial metric pattern recognition and extraction
+📋 **NEW - State Database Manager**: Append-only Google Sheets time-series storage
+📋 **NEW - Delta Calculator**: Real-time metric change analysis and significance scoring
+✅ **AI Agent Enhancement**: Document-aware analysis prompts with historical context
+🔧 **Living Report System**: Progressive analysis updates with delta intelligence visualization
 
-### Document Processing Architecture
-**New Working Flow:**
+### Document Processing Architecture (Enhanced)
+**New Working Flow with State Management:**
 ```
 Company Document Upload → Google Drive Push Notification → n8n Webhook Handler 
-→ Document Type Detection → Content Extraction → Company Analysis Router 
-→ 5 Enhanced AI Agents → Living Report Updates → Team Notifications
+→ Document Type Detection → Content Extraction → Metric Extraction
+→ State Database Update → Delta Calculation → Historical Context Integration
+→ 6 Enhanced AI Agents (with Delta Intelligence) → Living Report Updates → Smart Notifications
 ```
 
-**Company Folder Structure:**
+**Company Folder Structure (Enhanced):**
 ```
 Private Equity Analysis/
 ├── CompanyA/ (folder ID: monitored for changes)
-│   ├── 10K_2024.pdf → triggers Financial + Executive agents
-│   ├── earnings_Q3.pdf → triggers Financial + Thesis agents
+│   ├── Q1_2024_financials.pdf → extracts revenue metrics → calculates deltas
+│   ├── Q2_2024_earnings.pdf → detects +$10M revenue → triggers high-priority alert
 │   └── market_research.pdf → triggers Market agent
 ├── CompanyB/ (folder ID: monitored for changes)  
-│   ├── investor_deck.pptx → triggers Executive + Recommendation agents
-│   └── financial_model.xlsx → triggers Financial agent
+│   ├── investor_deck.pptx → extracts valuation data → updates state database
+│   └── financial_model.xlsx → comprehensive metrics → historical trend analysis
+└── System/State-Database/ (Google Sheets)
+    ├── CompanyA-Metrics/ (revenue_history, valuation_history, kpi_snapshots)
+    ├── CompanyB-Metrics/ 
+    └── Delta-Intelligence/ (monthly_deltas, trend_analysis, alert_triggers)
 ```
 
 ### Enhanced Integration Points
 - **Google Drive API**: ✅ Real-time document change monitoring with push notifications
-- **Document Processing**: ✅ Multi-format text extraction (PDF, Excel, Word, PowerPoint)
-- **AI Agent Coordination**: 🔧 Document-specific analysis routing and processing
-- **Living Reports**: 🔧 Version-controlled analysis that updates with new documents  
-- **Company Intelligence**: 🔧 Progressive analysis enhancement per company folder
+- **Google Sheets API**: 📋 NEW - Time-series state database for append-only metric storage
+- **Document Processing**: ✅ Multi-format text extraction with financial metric pattern recognition
+- **AI Agent Coordination**: 🔧 Document-specific analysis routing with historical context integration
+- **Living Reports**: 🔧 Version-controlled analysis with delta intelligence visualization
+- **Company Intelligence**: 🔧 Progressive analysis enhancement per company folder with metric evolution
+- **Delta Intelligence Engine**: 📋 NEW - Real-time metric change calculation and trend analysis
+- **Smart Alert System**: 📋 NEW - Priority-based notifications for significant metric changes
 
 ---
 
@@ -210,33 +224,36 @@ Private Equity Analysis/
 
 ## 🎯 Usage Context
 
-### Primary Use Cases
-1. **Document-Driven PE Analysis** - Real-time investment analysis triggered by new documents
-2. **Living Investment Intelligence** - Progressive analysis enhancement with document accumulation
-3. **Multi-Company Portfolio Monitoring** - Cross-folder comparative analysis and tracking
-4. **Evidence-Based Investment Decisions** - Document-cited analysis and recommendations
+### Primary Use Cases (Enhanced with Delta Intelligence)
+1. **Document-Driven PE Analysis with State Management** - Real-time investment analysis with instant metric intelligence
+2. **Living Investment Intelligence** - Progressive analysis enhancement with historical context and trend analysis
+3. **Multi-Company Portfolio Monitoring** - Cross-folder comparative analysis with delta intelligence
+4. **Evidence-Based Investment Decisions** - Document-cited analysis with quantitative metric backing
+5. **NEW - Instant Metric Monitoring** - Real-time awareness of financial performance changes
+6. **NEW - Delta Intelligence Alerts** - Immediate notifications for significant metric changes
 
-### Target Workflows
+### Target Workflows (Enhanced)
 ```bash
-# Document-Driven Analysis Workflow
-# 1. Upload financial document to company folder → Automatic analysis trigger
-# 2. Google Drive push notification → n8n document processing
-# 3. Multi-format extraction → AI agent analysis → Report updates
+# Enhanced Document-Driven Analysis Workflow with State Management
+# 1. Upload financial document → Metric extraction → State database update
+# 2. Delta calculation → Historical context integration → Smart alerts
+# 3. 6 AI agents with historical awareness → Enhanced report with delta visualization
 
-# Daily Development Workflow  
+# Enhanced Daily Development Workflow  
 task-master next                    # Get next task
 claude                             # Start AI development session
-# Implement document processing features with AI assistance
+# Implement state management and delta intelligence features
 task-master set-status --id=X --status=done
 
-# Company Analysis Workflow
-# Real-time: Document upload → Push notification → Analysis update → Team notification
+# Enhanced Company Analysis Workflow with Delta Intelligence
+# Real-time: Document upload → Metric extraction → Delta calculation → Smart alerts → Updated analysis
 ```
 
-### Learning Objectives
-- **Technical**: Google Drive API, push notifications, document processing, real-time triggers
-- **Business**: Document-driven investment analysis, progressive due diligence
-- **AI Tools**: Document-aware AI agents, living analysis reports, multi-format processing
+### Learning Objectives (Enhanced)
+- **Technical**: Google Drive API, push notifications, document processing, real-time triggers, time-series databases, delta calculation
+- **Business**: Document-driven investment analysis, progressive due diligence, metric intelligence, trend analysis
+- **AI Tools**: Document-aware AI agents with historical context, living analysis reports, multi-format processing, delta intelligence
+- **NEW - State Management**: Append-only databases, time-series analysis, metric extraction, delta intelligence systems
 
 ---
 
@@ -253,14 +270,16 @@ task-master show <id>              # View task details
 claude                            # Start AI session
 claude --mcp-debug               # Debug MCP connections
 
-# Document-Driven Analysis (New)
-# 1. Upload document to company folder in Google Drive
-# 2. Push notification automatically triggers n8n workflow
-# 3. Analysis updates happen automatically - no manual trigger needed
+# Document-Driven Analysis with Delta Intelligence (Enhanced)
+# 1. Upload financial document to company folder in Google Drive
+# 2. Push notification triggers n8n workflow with metric extraction
+# 3. State database updated, deltas calculated, smart alerts triggered
+# 4. Enhanced analysis with historical context happens automatically
 
-# Google Drive Structure Setup
+# Google Drive Structure Setup (Enhanced)
 mkdir "Private Equity Analysis/CompanyA"    # Create company folder
-# Upload documents → Automatic analysis triggers
+mkdir "System/State-Database/CompanyA-Metrics"  # State management setup
+# Upload documents → Automatic metric extraction + delta intelligence
 ```
 
 ### Configuration Files Priority
@@ -278,13 +297,15 @@ mkdir "Private Equity Analysis/CompanyA"    # Create company folder
 
 ---
 
-## 📝 Project Context Summary
+## 📝 Project Context Summary (Enhanced with State Management)
 
-**PE-Eval** is a sophisticated document-driven AI automation platform transitioning to real-time investment analysis through Google Drive monitoring and intelligent document processing. The system enables private equity firms to create living analysis reports that automatically evolve as new financial documents are added to company-specific folders.
+**PE-Eval** is a sophisticated document-driven AI automation platform with state management capabilities, transitioning to real-time investment analysis with instant metric intelligence through Google Drive monitoring and intelligent document processing. The system enables private equity firms to create living analysis reports that automatically evolve as new financial documents are added to company-specific folders, while providing immediate awareness of metric changes like "Company revenue increased $10M since last quarter."
 
-**Current Status**: Architecture transition phase - moving from manual webhook triggers to automated document-driven analysis with Google Drive push notifications and multi-format document processing.
+**Current Status**: Architecture transition phase - moving from manual webhook triggers to automated document-driven analysis with Google Drive push notifications, multi-format document processing, metric extraction, delta calculation, and historical context integration.
 
-**Next Steps**: Complete document monitoring implementation, enhance AI agents for document-aware analysis, and deploy living analysis report system.
+**Enhanced Features**: Time-series state database using Google Sheets for append-only metric storage, real-time delta intelligence for instant change detection, 6 AI agents with historical context awareness, and smart priority-based alerts for significant metric changes.
+
+**Next Steps**: Complete document monitoring implementation, deploy Google Sheets state database, implement metric extraction and delta calculation engines, enhance AI agents for document-aware analysis with historical context, and deploy living analysis report system with delta intelligence visualization.
 
 ---
 

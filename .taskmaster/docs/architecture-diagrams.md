@@ -1,10 +1,34 @@
-# PE-Eval Multi-Modal Architecture Diagrams
+# PE-Eval Dual-Track Architecture Diagrams
+
+## MVP n8n Workflow (Current Priority - 2 weeks)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           MVP n8n Workflow Architecture                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│   Google Drive   │    │ Extract From File│    │   Code Node      │
+│    Trigger       │───▶│  (n8n Native)   │───▶│ (MetricExtractor)│
+│  (File Changes)  │    │ PDF, Excel, Word │    │  89.6% Accuracy  │
+└──────────────────┘    └──────────────────┘    └──────────┬───────┘
+                                                           │
+                                                           v
+┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│ Google Sheets    │◀───│  OpenAI Node     │◀───│ LLM Validation   │
+│   Operations     │    │ (GPT-4 Enhance) │    │ (Derek's Enhance)│
+│(StateDatabase.js)│    │   10-15% Boost   │    │                  │
+└──────────────────┘    └──────────────────┘    └──────────────────┘
+```
+
+## Future Enhanced Architecture (Tasks 19-27)
 
 ## System Overview Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           PE-Eval Multi-Modal Architecture                  │
+│                     PE-Eval Enhanced JavaScript Architecture                │
+│                            (Future Implementation)                          │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
@@ -242,134 +266,210 @@ REQUEST INITIATION:
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## n8n Workflow Structure
+## MVP n8n Workflow Structure (Current Implementation)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        n8n WORKFLOW ARCHITECTURE                            │
+│                        MVP n8n WORKFLOW - 5 NODES                          │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-[Schedule Trigger: 30s]
+[Google Drive Trigger]
+    Watch Files: /Private Companies/{company}/
+    Events: fileAdded, fileUpdated
           │
           v
-[Multi-Source Polling Function]
-├─ Check Database Queue (PRIMARY)
-├─ Check Google Drive API (SECONDARY)  
-├─ Check Email IMAP (TERTIARY)
-└─ Check CRM APIs (ADVANCED)
+[Extract From File Node]
+    Formats: PDF, Excel, Word, PowerPoint
+    Output: Raw text content + metadata
           │
           v
-[Request Found?] ──No──► [Wait for Next Cycle]
-          │ Yes
-          v
-[Validate & Normalize Request]
-├─ Schema validation
-├─ Data enrichment  
-├─ Priority assignment
-└─ Deduplication check
+[Code Node - Metric Extraction]
+    Source: MetricExtractor.js patterns (89.6% accuracy)
+    Processing: Regex patterns + confidence scoring
+    Output: Structured metrics (revenue, valuation, ARR, etc.)
           │
           v
-[Update Status: Processing]
+[OpenAI Node - LLM Validation]
+    Model: GPT-4 (cost-optimized)
+    Purpose: Validate + enhance regex results
+    Expected: 10-15% accuracy improvement
           │
           v
-[Data Collection Pipeline] ──┐
-├─ [Google Drive Search]     │
-├─ [Brave Search API]        │ Parallel
-├─ [Financial Data APIs]     │ Execution
-└─ [Data Aggregation]        │
-          │ ←──────────────────┘
-          v
-[AI Analysis Pipeline] ──┐
-├─ [GPT-4: Executive Summary]     │
-├─ [GPT-4: Financial Highlights]  │ Parallel
-├─ [GPT-4: Market Analysis]       │ Execution
-├─ [GPT-4: Investment Thesis]     │
-└─ [GPT-4: Recommendations]       │
-          │ ←────────────────────────┘
-          v
-[Report Generation]
-├─ [Aggregate AI Outputs]
-├─ [HTML Template Processing]
-├─ [PDF Generation]
-└─ [Report Validation]
+[Google Sheets Node - State Database]
+    Source: StateDatabase.js operations
+    Schema: DatabaseSchema.js structure
+    Operations: Append metrics, calculate deltas, update metadata
           │
           v
-[Distribution Pipeline] ──┐
-├─ [Email Distribution]   │
-├─ [File Storage]         │ Parallel
-├─ [Database Archive]     │ Execution
-└─ [Notification Send]    │
-          │ ←─────────────────┘
-          v
-[Update Status: Completed]
-          │
-          v
-[Error Handling] ────► [Exponential Backoff]
-├─ Log errors           ├─ Increment retry_count
-├─ Update status        ├─ Calculate delay
-├─ Send alerts          └─ Schedule retry
-└─ Prepare retry
+[Success/Error Handling]
+    Success: Trigger company analysis update
+    Error: Retry logic + alert notifications
 ```
 
-## Database Schema Relationships
+## Future Enhanced n8n Orchestration
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        DATABASE SCHEMA OVERVIEW                             │
+│                  ENHANCED n8n WORKFLOW ARCHITECTURE                        │
+│                        (Future Implementation)                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-analysis_request_queue
-├─ id (UUID, PK)
-├─ request_data (JSONB) ── Contains: company_name, ticker, analysis_type, 
-├─ source_type (VARCHAR)              priority, requester, deadline, 
-├─ source_reference (TEXT)            custom_parameters
-├─ status (ENUM)
-├─ priority (INTEGER)
-├─ created_at (TIMESTAMP)
-├─ processing_started_at (TIMESTAMP)
-├─ completed_at (TIMESTAMP)  
-├─ retry_count (INTEGER)
-├─ last_error (TEXT)
-└─ assigned_processor (VARCHAR)
+[Google Drive Push Notifications]
           │
-          ├─ FK Relationship
           v
-processing_status
-├─ id (UUID, PK)
-├─ request_id (UUID, FK) ───────────┐
-├─ step_name (VARCHAR)              │
-├─ status (ENUM)                    │
-├─ step_data (JSONB)                │
-├─ started_at (TIMESTAMP)           │
-├─ completed_at (TIMESTAMP)         │
-└─ error_message (TEXT)             │
-          │                         │
-          ├─ FK Relationship        │
-          v                         │
-results_archive                     │
-├─ id (UUID, PK)                    │
-├─ original_request_id (UUID, FK) ──┘
-├─ final_report (JSONB) ── Contains: executive_summary, financial_highlights,
-├─ report_formats (JSONB)            market_analysis, investment_thesis,
-├─ email_sent (BOOLEAN)              actionable_recommendations, metadata
-├─ file_locations (JSONB)
-├─ archived_at (TIMESTAMP)
-└─ report_version (VARCHAR)
-
-INDEXES:
-├─ idx_queue_polling (status, priority, created_at) WHERE status IN ('pending', 'retry')
-├─ idx_queue_source_type (source_type, created_at)  
-├─ idx_queue_company_lookup GIN ((request_data->>'company_name') gin_trgm_ops)
-├─ idx_processing_status_request (request_id, step_name)
-├─ idx_results_archive_request (original_request_id)
-└─ idx_results_archive_date (archived_at)
+[Document Type Detection & Routing]
+├─ Financial Documents → Financial Agent
+├─ Market Research → Market Agent
+├─ Management Decks → Executive Agent
+└─ Due Diligence → Investment Thesis Agent
+          │
+          v
+[Enhanced Document Processing]
+├─ Multi-format extraction with confidence scoring
+├─ Document lineage and version tracking
+├─ Content classification and metadata enrichment
+└─ Historical context integration
+          │
+          v
+[6 AI Agents with Delta Intelligence] ──┐
+├─ [Executive Summary Agent]            │
+├─ [Financial Analysis Agent]           │ Parallel
+├─ [Market Analysis Agent]              │ Execution
+├─ [Investment Thesis Agent]            │ with Historical
+├─ [Recommendation Agent]               │ Context
+└─ [State Analysis Agent - NEW]         │
+          │ ←──────────────────────────────┘
+          v
+[Living Report Generation with Delta Intelligence]
+├─ Progressive analysis enhancement
+├─ Document change impact tracking
+├─ Version control with delta visualization
+└─ Smart alert generation for significant changes
+          │
+          v
+[Enhanced Distribution & Monitoring]
+├─ Priority-based alert system
+├─ Real-time dashboard updates
+├─ Portfolio comparison and benchmarking
+└─ Enterprise security and compliance
 ```
 
-## Error Handling & Recovery Flow
+## State Database Schema (Google Sheets - MVP + Future)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        ERROR HANDLING ARCHITECTURE                          │
+│                   GOOGLE SHEETS STATE DATABASE SCHEMA                      │
+│                        (From DatabaseSchema.js)                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+**MVP Implementation:**
+Company Spreadsheet Structure (per company):
+
+REVENUE_HISTORY Sheet:
+├─ timestamp (Date)
+├─ company_name (Text)
+├─ metric_value (Number)
+├─ currency (Text) 
+├─ period (Text)
+├─ source_document (Text)
+├─ confidence_score (Number)
+└─ extraction_method (Text)
+
+VALUATION_HISTORY Sheet:
+├─ timestamp (Date)
+├─ company_name (Text)
+├─ valuation (Number)
+├─ currency (Text)
+├─ valuation_type (Text)
+├─ source_document (Text)
+└─ confidence_score (Number)
+
+KPI_SNAPSHOTS Sheet:
+├─ timestamp (Date)
+├─ company_name (Text)
+├─ kpi_type (Text) -- ARR, growth_rate, customer_count, burn_rate
+├─ kpi_value (Number)
+├─ unit (Text)
+├─ source_document (Text)
+└─ confidence_score (Number)
+
+DOCUMENT_LINEAGE Sheet:
+├─ timestamp (Date)
+├─ document_id (Text)
+├─ company_name (Text)
+├─ document_type (Text)
+├─ document_name (Text)
+├─ processing_status (Text)
+└─ metrics_extracted_count (Number)
+
+**Future Enhancement:**
+DELTA_INTELLIGENCE Sheet:
+├─ timestamp (Date)
+├─ company_name (Text)
+├─ metric_type (Text)
+├─ old_value (Number)
+├─ new_value (Number)
+├─ delta_absolute (Number)
+├─ delta_percent (Number)
+├─ significance_score (Number)
+└─ alert_triggered (Boolean)
+
+COMPANY_METADATA Sheet:
+├─ company_name (Text)
+├─ last_updated (Date)
+├─ document_count (Number)
+├─ analysis_version (Text)
+├─ spreadsheet_id (Text)
+└─ folder_path (Text)
+```
+
+## MVP Error Handling (n8n Native + Phase 1 Patterns)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    MVP n8n ERROR HANDLING STRATEGY                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[Node Execution Error]
+          │
+          v
+[n8n Built-in Error Handling]
+├─ Continue on Fail: true
+├─ Retry on Fail: true (3 attempts)
+├─ Wait Between Retries: 1000ms (exponential)
+└─ Error Output: Include details
+          │
+          v
+[Error Type Classification]
+├─ Google Drive API Error
+├─ File Extraction Error
+├─ Metric Extraction Error (Code Node)
+├─ OpenAI API Error
+└─ Google Sheets API Error
+          │
+          v
+[Apply Circuit Breaker Pattern]
+(Translated from CircuitBreaker.js)
+├─ Track failure rate per API
+├─ Open circuit after 5 failures
+├─ Half-open after 60s recovery
+└─ Close on successful call
+          │
+          v
+[Recovery Actions]
+├─ API Timeout → Exponential backoff
+├─ Rate Limit → Respect limits + retry
+├─ Auth Error → Alert for manual fix
+├─ Data Error → Log + partial processing
+└─ Unknown → Alert + manual review
+```
+
+## Future Error Handling & Recovery Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                   ENHANCED ERROR HANDLING ARCHITECTURE                     │
+│                          (Future Implementation)                           │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 [Processing Error Detected]

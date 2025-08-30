@@ -19,51 +19,81 @@
 
 ## Project Overview
 
-**PE-Eval** is an advanced document-driven AI automation platform for private equity firms, featuring real-time document monitoring and intelligent company analysis.
+**PE-Eval** is an advanced document-driven AI automation platform for private equity firms, featuring real-time document monitoring and intelligent company analysis using a dual-track implementation strategy.
+
+### 🚀 **Current Implementation: MVP n8n Workflow (2-week deployment)**
+**Status**: Phase 1 state management foundation completed (89.6% accuracy achieved)
+**Next**: Tasks 28-33 - MVP n8n workflow implementation
 
 ### Core Value Proposition
 - **Document-driven analysis** - Each company has dedicated Google Drive folder
 - **Real-time triggers** - New documents automatically trigger updated analysis
 - **Living analysis reports** - Always-current analysis that evolves with new information
-- **AI-powered insights** from 5 specialized agents (GPT-4 and Claude models)
+- **Dual-track approach** - MVP n8n validation → Full JavaScript production architecture
+- **Proven accuracy** - 89.6% metric extraction accuracy from Phase 1 foundation
 
 ### Key Features
+#### **MVP Features (Current Priority)**
 - 📁 Google Drive push notification monitoring
-- 🤖 5-agent AI analysis pipeline (Executive, Financial, Market, Thesis, Recommendations)
-- 📊 Multi-format document processing (PDF, Excel, Word)
-- 🔍 Company-specific analysis folders and triggers
-- 📈 Progressive analysis enhancement with each new document
-- 🔄 n8n workflow orchestration with document-based triggers
+- 🔧 **5-node n8n workflow** - Streamlined processing pipeline
+- 📊 **Native document processing** - n8n Extract From File for PDF/Excel/Word/PowerPoint
+- 🧮 **Proven metric extraction** - Existing regex patterns with 89.6% accuracy
+- 🤖 **LLM validation** - OpenAI integration for enhanced accuracy
+- 💾 **Google Sheets state database** - Time-series metric tracking
+
+#### **Future Features (Full JavaScript Architecture)**
+- 🤖 6 specialized AI agents with delta intelligence
+- 📊 Advanced document processing with confidence scoring
+- 🚨 Smart notification system with priority-based alerting
+- 📈 Living reports with visual delta intelligence dashboards
+- 🔒 Enterprise security and audit framework
 
 ---
 
 ## Quick Start
 
 ### Prerequisites
-- Node.js 18+ installed
-- API keys for: OpenAI, Google (Drive API, push notifications), Brave Search
-- n8n instance (local or cloud) with Google Drive integration
+#### **MVP n8n Workflow Requirements**
+- n8n Cloud account (recommended) or local n8n instance
+- API keys for: OpenAI (GPT-4), Google (Drive API, Sheets API)
 - Google Drive with company-specific folders
-- Git for version control
+- Git for version control and documentation
 
-### 30-Second Setup
+#### **Development Environment (Optional)**
+- Node.js 18+ (for future JavaScript implementation)
+- Claude Code (AI development assistant)
+- Task Master AI (project management)
+
+### Quick Setup for MVP
+
+#### **Option 1: n8n Cloud Setup (Recommended)**
 ```bash
-# Clone repository
+# Clone repository for documentation and reference
 git clone https://github.com/yandifarinango/pe-eval.git
 cd pe-eval
 
-# Setup configurations
+# Review MVP implementation guide
+open docs/n8n-workflow-mapping.md
+
+# Set up n8n Cloud account at n8n.cloud
+# Import 5-node workflow from .taskmaster/docs/mvp-n8n-workflow.md
+# Configure API credentials in n8n interface
+```
+
+#### **Option 2: Development Environment Setup**
+```bash
+# Setup configurations for development
 cp .env.example .env
 cp .mcp.template.json .mcp.json
 cp .claude/settings.template.json .claude/settings.json
 cp .taskmaster/config.template.json .taskmaster/config.json
 
-# Add your API keys to .env (Google Drive API key required)
-# Configure Task Master
+# Add your API keys to .env
+# Configure Task Master for project management
 task-master init
 task-master models --setup
 
-# Test the system
+# Start development session
 claude  # Start Claude Code session
 ```
 
@@ -101,26 +131,51 @@ const watchRequest = {
 
 ## Architecture
 
-### Document-Driven System Architecture
+### Dual-Track Implementation Architecture
+
+#### **MVP n8n Workflow (Current Implementation)**
 ```
 ┌─────────────────┐     ┌──────────────┐     ┌─────────────────┐
-│  Google Drive   │────▶│  Push        │────▶│  n8n Workflow   │
-│  Document       │     │  Notification│     │  Orchestrator   │
-│  Changes        │     │  Webhook     │     │                 │
+│  Google Drive   │────▶│  n8n Trigger │────▶│  Extract From   │
+│  Document       │     │  (Node 1)    │     │  File (Node 2)  │
+│  Changes        │     │               │     │                 │
 └─────────────────┘     └──────────────┘     └─────────────────┘
-                               │                     │
-                               ▼                     ▼
-                        ┌──────────────┐     ┌─────────────────┐
-                        │  Document    │     │  5 AI Agents    │
-                        │  Extraction  │────▶│  (GPT-4/Claude) │
-                        │  Pipeline    │     │  Analysis       │
-                        └──────────────┘     └─────────────────┘
                                                      │
                                                      ▼
+                        ┌─────────────────┐     ┌─────────────────┐
+                        │  Google Sheets  │◀────│  LLM Validation │
+                        │  Update (Node 5)│     │  (Node 4)       │
+                        │                 │     │                 │
+                        └─────────────────┘     └─────────────────┘
+                                                     ▲
+                                                     │
                                               ┌─────────────────┐
-                                              │  Living         │
-                                              │  Analysis       │
-                                              │  Reports        │
+                                              │  Metric         │
+                                              │  Extraction     │
+                                              │  (Node 3)       │
+                                              └─────────────────┘
+```
+
+#### **Future JavaScript Architecture (Phase 2+)**
+```
+┌─────────────────┐     ┌──────────────┐     ┌─────────────────┐
+│  Google Drive   │────▶│  Push        │────▶│  Document       │
+│  Document       │     │  Notification│     │  Processing     │
+│  Changes        │     │  Webhook     │     │  Pipeline       │
+└─────────────────┘     └──────────────┘     └─────────────────┘
+                                                     │
+                                                     ▼
+                        ┌─────────────────┐     ┌─────────────────┐
+                        │  Living         │◀────│  6 AI Agents    │
+                        │  Analysis       │     │  (Enhanced)     │
+                        │  Reports        │     │                 │
+                        └─────────────────┘     └─────────────────┘
+                                                     ▲
+                                                     │
+                                              ┌─────────────────┐
+                                              │  Delta          │
+                                              │  Intelligence   │
+                                              │  Engine         │
                                               └─────────────────┘
 ```
 
@@ -133,15 +188,26 @@ const watchRequest = {
 6. **Distribution**: Updated analysis delivered to investment team
 
 ### Technology Stack
+
+#### **MVP Technology Stack (Current)**
 | Layer | Technology | Purpose |
 |-------|------------|---------|
 | Document Monitoring | Google Drive API | Real-time document change detection |
-| Orchestration | n8n | Workflow automation and triggers |
-| Document Processing | Multi-format extractors | PDF, Excel, Word text extraction |
-| AI Models | OpenAI GPT-4 & Claude | Document-based financial analysis |
+| Workflow Platform | n8n Cloud | 5-node workflow orchestration |
+| Document Processing | n8n Extract From File | Native PDF, Excel, Word, PowerPoint extraction |
+| AI Models | OpenAI GPT-4 | LLM validation and enhancement |
+| State Database | Google Sheets | Time-series metric storage |
+| Metric Extraction | JavaScript Code Node | Proven regex patterns (89.6% accuracy) |
+
+#### **Future Technology Stack (Phase 2+)**  
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| Document Monitoring | Google Drive API | Real-time document change detection |
+| Orchestration | Node.js Services | Custom workflow automation |
+| Document Processing | Custom pipeline | Advanced multi-format extraction |
+| AI Models | OpenAI GPT-4 & Claude | 6 specialized agents with delta intelligence |
 | Search | Brave API | Supplementary market research |
-| Storage | Google Drive | Company-specific document folders |
-| Notifications | Push webhooks | Real-time change notifications |
+| Storage | Google Sheets + Caching | Enhanced state management with Redis |
 | Development | Claude Code | AI-assisted coding |
 | Task Management | Task Master AI | Project tracking |
 
@@ -149,114 +215,129 @@ const watchRequest = {
 
 ## Core Components
 
-### 1. Document Monitoring Engine
-**Google Drive Push Notifications**: Real-time document change detection
+### **Current Implementation Status**
+- ✅ **Phase 1 Complete**: State management foundation with 89.6% metric extraction accuracy
+- 🔧 **Current Priority**: MVP n8n workflow implementation (Tasks 28-33)
+- 📋 **Future Phase**: Full JavaScript architecture (Tasks 19-27)
 
-### ⚠️ **NEW ARCHITECTURE STATUS**
-**Current State**: TRANSITIONING to document-driven architecture
-**Previous Workflow**: `EdcGmkQjHRqhcRIX` being redesigned for document monitoring
-**New Approach**: Company folder monitoring with push notifications
+### **MVP n8n Workflow Components (5 Nodes)**
 
-#### Document-Driven Workflow Components
+#### **Node 1: Google Drive Trigger**
+- **Function**: Monitor company-specific folders for document changes
+- **Technology**: n8n native Google Drive trigger
+- **Output**: Document metadata, file content, company identification
+- **Configuration**: Company folder monitoring with push notifications
 
-**✅ CORE COMPONENTS:**
-1. **Google Drive Webhook Handler** - Receives push notifications for document changes
-2. **Company Folder Mapper** - Maps changed documents to specific company analysis
-3. **Document Type Classifier** - Identifies PDF, Excel, Word document types
-4. **Multi-Format Text Extractor** - Extracts content from various document formats
-5. **Document Content Processor** - Cleans and structures extracted text
-6. **Company Analysis Router** - Routes documents to appropriate company analysis pipeline
+#### **Node 2: Extract From File**  
+- **Function**: Extract text content from multiple document formats
+- **Technology**: n8n native Extract From File node
+- **Supported Formats**: PDF, Excel (.xlsx), Word (.docx), PowerPoint (.pptx)
+- **Output**: Raw text content with metadata preservation
 
-**🔄 AI ANALYSIS PIPELINE:**
-7. **📊 Executive Summary Agent** - Processes new documents for company overview updates
-8. **💰 Financial Analysis Agent** - Extracts and analyzes financial metrics from documents
-9. **🌍 Market Analysis Agent** - Incorporates market intelligence from new documents
-10. **⚖️ Investment Thesis Agent** - Updates investment rationale based on new information
-11. **🎯 Recommendations Agent** - Adjusts recommendations with new document insights
-12. **📧 Living Report Generator** - Updates existing analysis with new document findings
+#### **Node 3: Metric Extraction (Code Node)**
+- **Function**: Extract financial metrics using proven regex patterns
+- **Technology**: JavaScript Code Node with Phase 1 MetricExtractor.js logic
+- **Accuracy**: 89.6% (validated in Phase 1)
+- **Output**: Structured financial metrics with confidence scores
+- **Patterns**: Revenue, valuation, ARR, growth rates, customer counts, burn rate
 
-#### Document Processing Configuration
+#### **Node 4: LLM Validation (OpenAI Node)**
+- **Function**: Validate and enhance regex extraction results
+- **Technology**: OpenAI GPT-4 integration
+- **Purpose**: Derek's suggested enhancement for improved accuracy
+- **Expected Improvement**: 10-15% accuracy boost over regex-only
+- **Output**: Validated metrics with additional context and corrections
+
+#### **Node 5: Google Sheets Update**
+- **Function**: Store metrics in time-series state database
+- **Technology**: n8n Google Sheets node with Phase 1 StateDatabase.js logic
+- **Operations**: Append metrics, calculate deltas, update metadata
+- **Schema**: Based on Phase 1 DatabaseSchema.js specifications
+- **Output**: Database confirmation and delta calculations
+
+#### **MVP Configuration Example**
 ```javascript
-// Google Drive push notification setup
-const companyFolders = {
-  "CompanyA": "1a2b3c4d5e6f7g8h9i0j",
-  "CompanyB": "2b3c4d5e6f7g8h9i0j1k"
-};
-
-// Webhook endpoint for document changes
-DOCUMENT_WEBHOOK_URL = "https://your-n8n-instance.com/webhook/drive-changes"
-
-// Document processing settings
-const documentTypes = {
-  "application/pdf": "pdf_extractor",
-  "application/vnd.ms-excel": "excel_extractor", 
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "word_extractor"
-};
+// n8n Workflow Configuration
+{
+  "nodes": [
+    {
+      "name": "Google Drive Trigger",
+      "type": "Google Drive Trigger",
+      "parameters": {
+        "watchFor": "fileAdded,fileUpdated",
+        "folderPath": "/Private Companies/{company}/"
+      }
+    },
+    {
+      "name": "Extract From File",
+      "type": "Extract From File",
+      "parameters": {
+        "formats": ["pdf", "xlsx", "docx", "pptx"],
+        "extractText": true
+      }
+    },
+    {
+      "name": "Metric Extraction",
+      "type": "Code",
+      "parameters": {
+        "jsCode": "// MetricExtractor.js patterns from Phase 1\n// 89.6% accuracy regex patterns\nconst patterns = { revenue: [...], valuation: [...] };"
+      }
+    }
+  ]
+}
 ```
 
-### 2. AI Analysis Pipeline
+### **Future JavaScript Architecture Components (Phase 2+)**
 
-#### Document-Based Agent Roles and Prompts
+#### **Enhanced AI Analysis Pipeline (Tasks 19-27)**
+When the full JavaScript architecture is implemented, the system will include:
 
-**Executive Summary Agent**
-```
-Role: Synthesize company overview from new documents
-Input: Extracted text from company-specific documents, existing analysis
-Output: Updated 2-3 paragraph executive summary incorporating new insights
-Focus: Integration of new document findings with existing analysis
-Context: Company-specific folder and document history
-```
+**6 Specialized AI Agents with Delta Intelligence:**
+1. **Executive Summary Agent** - Enhanced with historical context
+2. **Financial Analysis Agent** - Real-time delta calculation
+3. **Market Analysis Agent** - Trend analysis and benchmarking  
+4. **Investment Thesis Agent** - Progressive thesis evolution
+5. **Recommendation Agent** - Evidence-based decision evolution
+6. **NEW - State Analysis Agent** - Specialized delta intelligence expert
 
-**Financial Analysis Agent**
-```
-Role: Extract and analyze financial metrics from uploaded documents
-Input: PDF financial statements, Excel spreadsheets, earnings documents
-Output: Updated key metrics, trends, and ratios with document citations
-Focus: Document-sourced revenue growth, margins, cash flow analysis
-Context: Multi-document financial trend analysis over time
-```
+**Advanced Features (Future):**
+- **Delta Calculation Engine** - Real-time metric change detection
+- **Smart Notification System** - Priority-based alerting (>10% or >$1M changes)
+- **Living Reports** - Visual delta intelligence dashboards
+- **Portfolio Comparison** - Cross-company benchmarking
+- **Enterprise Security** - Audit, encryption, compliance
 
-**Market Analysis Agent**
-```
-Role: Assess market positioning from new intelligence documents  
-Input: Industry reports, competitive analysis documents, market research PDFs
-Output: Updated market size, growth projections, and competitive advantages
-Focus: Document-driven TAM updates, market share analysis, competitive moats
-Context: Company-specific market intelligence accumulation
-```
+#### **Phase 1 Foundation (Completed)**
+The MVP leverages this proven foundation:
+- ✅ **MetricExtractor.js** - 89.6% accuracy regex patterns
+- ✅ **StateDatabase.js** - Google Sheets time-series operations
+- ✅ **DatabaseSchema.js** - Comprehensive data schemas
+- ✅ **CircuitBreaker.js** - Resilience patterns
+- ✅ **CompanySpreadsheetProvisioner.js** - Automated setup
+- ✅ **MonitoringService.js** - System health tracking
 
-**Investment Thesis Agent**
-```
-Role: Evolve investment rationale based on new document insights
-Input: All updated agent analyses plus new document extractions
-Output: Refined bull/bear case incorporating latest document findings
-Focus: Document-driven value creation potential and risk assessment updates
-Context: Progressive thesis refinement with each new document
-```
+### **Document Processing Capabilities**
 
-**Recommendation Agent**
-```
-Role: Adjust recommendations based on accumulated document evidence
-Input: Complete updated analysis from all agents
-Output: Reinforced or revised DEEP DIVE / PURSUE / PASS decision
-Focus: Evidence-based recommendation evolution with new document impact
-Context: Decision confidence tracking with document-driven evidence
-```
+#### **MVP Document Support (n8n Extract From File)**
+**Supported Formats:**
+- **PDF Documents** - SEC filings, earnings reports, audit reports
+- **Excel Spreadsheets (.xlsx)** - Financial models, data sheets  
+- **Word Documents (.docx)** - Analysis reports, memos
+- **PowerPoint Presentations (.pptx)** - Investor decks, presentations
 
-### 3. Document Processing
+**Processing Features:**
+- Native n8n optimization for large files
+- Automatic format detection and error handling
+- Memory-efficient processing
+- Metadata preservation for document lineage
 
-#### Supported Document Types and Processing
-**Financial Documents:**
-- SEC Filings (10-K, 10-Q, 8-K) - PDF text extraction
-- Earnings Reports and Transcripts - PDF processing
-- Financial Statements and Models - Excel/PDF extraction
-- Audit Reports and Financial Reviews - PDF processing
-
-**Market Intelligence Documents:**
-- Industry Research Reports - PDF text extraction
-- Competitive Analysis Documents - PDF/Word processing
-- Market Studies and Surveys - Multi-format processing
-- Investor Presentations - PDF/PowerPoint extraction
+#### **Future Document Processing (Phase 2+)**
+**Enhanced Capabilities:**
+- Custom extraction algorithms
+- Advanced OCR for scanned documents
+- Table and chart extraction
+- Multi-language document support
+- Confidence scoring for extraction quality
 
 #### Document Processing Pipeline
 ```javascript

@@ -135,64 +135,85 @@ cp .env.example .env
 
 ---
 
-## 🔄 Document-Driven Architecture Status (Enhanced with State Management)
+## 🔄 Dual-Track Implementation Status
 
-### New Architecture Implementation
+### Current Architecture Implementation
+- ✅ **Phase 1 Foundation**: State management with 89.6% metric extraction accuracy (COMPLETED)
+- 🚀 **MVP Track**: 5-node n8n workflow for rapid deployment (CURRENT PRIORITY - Tasks 28-33)
+- 📋 **Future Track**: Full JavaScript architecture with enterprise features (Tasks 19-27)
 - **Document Monitoring**: Google Drive push notifications for real-time triggers
-- **Company Folders**: Each private company has dedicated Google Drive folder structure
-- **Multi-Format Processing**: PDF, Excel, Word, PowerPoint document extraction with metric parsing
-- **NEW - State Management**: Append-only time-series database for metric tracking
-- **NEW - Delta Intelligence**: Real-time metric change calculation and alerts
-- **Status**: 🔧 **ACTIVE DEVELOPMENT** - Transitioning from webhook to document-driven + state management system
+- **Company Folders**: Each private company has dedicated Google Drive folder structure  
+- **MVP Processing**: n8n Extract From File node for PDF, Excel, Word, PowerPoint
+- **MVP Intelligence**: LLM validation enhancing proven regex patterns
+- **Status**: 🚀 **MVP IMPLEMENTATION** - 2-week n8n deployment using proven Phase 1 logic
 
-### 🔄 Architecture Transition Progress
-**Migration Status**: Moving from manual webhook triggers to automated document monitoring with delta intelligence
+### 🚀 MVP Implementation Progress (Current Priority)
+**Status**: Implementing 5-node n8n workflow using proven Phase 1 foundation
 
-**New Document-Driven + State Management Components:**
-🔧 **Google Drive Webhook Handler**: Receives push notifications for document changes
-🔧 **Company Folder Mapper**: Maps documents to specific company analysis pipelines  
-🔧 **Document Type Classifier**: Identifies and routes PDF, Excel, Word documents
-✅ **Multi-Format Extractors**: Text extraction from various document formats
-📋 **NEW - Metric Extraction Engine**: Financial metric pattern recognition and extraction
-📋 **NEW - State Database Manager**: Append-only Google Sheets time-series storage
-📋 **NEW - Delta Calculator**: Real-time metric change analysis and significance scoring
-✅ **AI Agent Enhancement**: Document-aware analysis prompts with historical context
-🔧 **Living Report System**: Progressive analysis updates with delta intelligence visualization
+**MVP n8n Workflow Components (Tasks 28-33):**
+📋 **Task 28**: n8n Workflow Setup and API Configuration
+📋 **Task 29**: Google Drive Trigger + Extract From File nodes  
+📋 **Task 30**: Metric Extraction Code Node (MetricExtractor.js patterns)
+📋 **Task 31**: LLM Validation via OpenAI node (Derek's suggestion)
+📋 **Task 32**: Google Sheets operations (StateDatabase.js logic)
+📋 **Task 33**: Error handling, monitoring, end-to-end testing
 
-### Document Processing Architecture (Enhanced)
-**New Working Flow with State Management:**
+**Phase 1 Foundation (COMPLETED - Ready for MVP):**
+✅ **MetricExtractor.js**: 89.6% accuracy regex patterns for financial metrics
+✅ **StateDatabase.js**: Google Sheets time-series operations and delta calculations
+✅ **DatabaseSchema.js**: Comprehensive schemas for all metric types
+✅ **CircuitBreaker.js**: Resilience patterns and error handling
+✅ **CompanySpreadsheetProvisioner.js**: Automated company setup workflows
+
+### Document Processing Architecture (Dual-Track)
+
+**MVP Workflow (Current - 2 weeks):**
+```
+Google Drive Document Change → n8n Trigger → Extract From File → Metric Extraction (Code Node)
+→ LLM Validation (OpenAI) → Google Sheets Update → Alert Generation
+```
+
+**Future Workflow (Phase 2+ - 3-6 months):**
 ```
 Company Document Upload → Google Drive Push Notification → n8n Webhook Handler 
-→ Document Type Detection → Content Extraction → Metric Extraction
-→ State Database Update → Delta Calculation → Historical Context Integration
+→ Document Type Detection → Advanced Content Extraction → Enhanced Metric Extraction
+→ State Database Update → Real-time Delta Calculation → Historical Context Integration
 → 6 Enhanced AI Agents (with Delta Intelligence) → Living Report Updates → Smart Notifications
 ```
 
-**Company Folder Structure (Enhanced):**
+**Company Folder Structure:**
 ```
 Private Equity Analysis/
-├── CompanyA/ (folder ID: monitored for changes)
-│   ├── Q1_2024_financials.pdf → extracts revenue metrics → calculates deltas
-│   ├── Q2_2024_earnings.pdf → detects +$10M revenue → triggers high-priority alert
-│   └── market_research.pdf → triggers Market agent
-├── CompanyB/ (folder ID: monitored for changes)  
-│   ├── investor_deck.pptx → extracts valuation data → updates state database
-│   └── financial_model.xlsx → comprehensive metrics → historical trend analysis
-└── System/State-Database/ (Google Sheets)
+├── CompanyA/ (monitored by n8n Google Drive trigger)
+│   ├── Q1_2024_financials.pdf → n8n workflow → metric extraction → Google Sheets
+│   ├── Q2_2024_earnings.pdf → MVP: basic delta calculation
+│   └── market_research.pdf → MVP: text extraction and basic analysis
+├── CompanyB/ (monitored by n8n Google Drive trigger)  
+│   ├── investor_deck.pptx → n8n Extract From File → LLM validation
+│   └── financial_model.xlsx → proven regex patterns → 89.6% accuracy
+└── State-Database/ (Google Sheets - Phase 1 foundation)
     ├── CompanyA-Metrics/ (revenue_history, valuation_history, kpi_snapshots)
-    ├── CompanyB-Metrics/ 
-    └── Delta-Intelligence/ (monthly_deltas, trend_analysis, alert_triggers)
+    ├── CompanyB-Metrics/ (existing schemas from DatabaseSchema.js)
+    └── MVP: Basic delta calculations with future enhancement to full intelligence
 ```
 
-### Enhanced Integration Points
-- **Google Drive API**: ✅ Real-time document change monitoring with push notifications
-- **Google Sheets API**: 📋 NEW - Time-series state database for append-only metric storage
-- **Document Processing**: ✅ Multi-format text extraction with financial metric pattern recognition
-- **AI Agent Coordination**: 🔧 Document-specific analysis routing with historical context integration
-- **Living Reports**: 🔧 Version-controlled analysis with delta intelligence visualization
-- **Company Intelligence**: 🔧 Progressive analysis enhancement per company folder with metric evolution
-- **Delta Intelligence Engine**: 📋 NEW - Real-time metric change calculation and trend analysis
-- **Smart Alert System**: 📋 NEW - Priority-based notifications for significant metric changes
+### Integration Points (Dual-Track)
+
+**MVP Integration Points (Current):**
+- **Google Drive API**: ✅ n8n native trigger for document monitoring
+- **Google Sheets API**: ✅ n8n native node using Phase 1 StateDatabase.js logic  
+- **Document Processing**: ✅ n8n Extract From File with native optimization
+- **OpenAI API**: 📋 LLM validation integration for enhanced accuracy
+- **Metric Extraction**: ✅ JavaScript Code Node with proven 89.6% accuracy patterns
+- **n8n Platform**: 🚀 Visual workflow with managed infrastructure
+
+**Future Integration Points (Phase 2+):**
+- **Advanced Document Processing**: Enhanced multi-format extraction with confidence scoring
+- **6 AI Agents**: Specialized agents with delta intelligence and historical context
+- **Real-time Delta Engine**: Sophisticated metric change calculation and trend analysis
+- **Smart Alert System**: Priority-based notifications for significant metric changes
+- **Living Reports**: Version-controlled analysis with visual delta intelligence
+- **Enterprise Features**: Security, audit, compliance, and production infrastructure
 
 ---
 
@@ -305,7 +326,13 @@ mkdir "System/State-Database/CompanyA-Metrics"  # State management setup
 
 **Enhanced Features**: Time-series state database using Google Sheets for append-only metric storage, real-time delta intelligence for instant change detection, 6 AI agents with historical context awareness, and smart priority-based alerts for significant metric changes.
 
-**Next Steps**: Complete document monitoring implementation, deploy Google Sheets state database, implement metric extraction and delta calculation engines, enhance AI agents for document-aware analysis with historical context, and deploy living analysis report system with delta intelligence visualization.
+**Next Steps**: 
+1. **Immediate (Tasks 28-33)**: Deploy MVP n8n workflow using Phase 1 foundation
+2. **Short-term**: Validate MVP with real PE documents and user feedback  
+3. **Medium-term**: Enhance MVP based on learnings and business requirements
+4. **Long-term (Tasks 19-27)**: Migrate to full JavaScript architecture with enterprise features
+
+**MVP Success Criteria**: >85% accuracy, <5 min processing time, >80% user satisfaction, clear migration path validation
 
 ---
 

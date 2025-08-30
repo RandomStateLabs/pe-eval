@@ -137,30 +137,58 @@ ln -s ~/.ai-tool-configs/pe-eval/settings.json .claude/settings.json
 
 ## 📊 Document-Driven Analysis System
 
-### Architecture Transition: Webhook → Document Monitoring
+### Dual-Track Implementation Strategy
 
-### 🔄 **NEW ARCHITECTURE STATUS**
-**Migrating from manual webhook triggers to automated document monitoring**
+### 🚀 **MVP APPROACH: n8n Workflow (Current Priority)**
+**Fast deployment using n8n's native capabilities with proven Phase 1 logic**
 
-**Document-Driven Components:**
-- 🔧 Google Drive push notifications for real-time document detection
-- 🔧 Company-specific folder monitoring and routing
-- 🔧 Multi-format document extraction (PDF, Excel, Word, PowerPoint)
-- ✅ 5 AI agents enhanced for document-based analysis
-- ✅ Living analysis reports with progressive enhancement
-- 📋 Version control and document change tracking
+**MVP Architecture - 5-Node n8n Workflow:**
+```
+Google Drive Change → Extract From File → Metric Extraction (Code Node) → LLM Validation → Google Sheets Update
+```
 
-**How It Works:**
+**MVP Components (Tasks 28-33):**
+- ✅ **Phase 1 Foundation** - State management and metric extraction (89.6% accuracy achieved)
+- 🔧 **n8n Workflow Setup** - 5-node workflow with API integrations
+- 🔧 **Document Processing** - Native Extract From File node for PDF/Excel/Word/PowerPoint
+- 🔧 **Metric Extraction** - Existing MetricExtractor.js patterns in n8n Code Node
+- 🔧 **LLM Validation** - OpenAI integration for enhanced accuracy (Derek's suggestion)
+- 🔧 **State Database** - Google Sheets operations based on existing StateDatabase.js logic
+
+**MVP Benefits:**
+- **2-week deployment** timeline for immediate user validation
+- **Proven accuracy** using existing 89.6% metric extraction patterns
+- **Cost-effective** development using n8n cloud platform
+- **User feedback** before full JavaScript implementation
+
+### 🏗️ **FUTURE APPROACH: Full JavaScript Architecture (Phase 2+)**
+**Enterprise-scale implementation using existing src/services/ foundation**
+
+**Full Architecture Components (Tasks 19-27):**
+- 📋 **Delta Calculation Engine** - Real-time metric intelligence with historical context
+- 📋 **Enhanced AI Agents** - 6 specialized agents with delta intelligence
+- 📋 **Advanced Document Processing** - Multi-format pipeline with confidence scoring
+- 📋 **Smart Notification System** - Priority-based alerting and stakeholder routing
+- 📋 **Living Reports** - Version-controlled analysis with visual dashboards
+- 📋 **Portfolio Comparison** - Cross-company benchmarking and analysis
+- 📋 **Security Framework** - Enterprise audit, encryption, and compliance
+- 📋 **Production Infrastructure** - CI/CD, monitoring, and DevOps pipeline
+
+**How Both Approaches Work:**
 1. Upload document to company folder → Google Drive push notification
-2. n8n workflow triggered for specific company
+2. System triggered for specific company (n8n workflow OR JavaScript services)
 3. All company documents extracted and analyzed
-4. 5 AI agents update analysis with new insights
-5. Living report automatically enhanced and distributed
+4. Financial metrics processed with historical context
+5. AI analysis updated with delta intelligence
+6. Living report automatically enhanced and distributed
+7. Smart alerts sent for significant metric changes
 
-**Core Concept:** Each company gets a dedicated folder, new documents trigger updated analysis automatically.
+**Core Concept:** MVP validates the workflow quickly, full implementation scales to enterprise needs.
 
-### Implementation Priority
-The document-driven approach eliminates webhook reliability issues and creates truly automated investment intelligence that stays current with new information.
+### Implementation Strategy
+1. **Phase A** (2 weeks): Deploy MVP n8n workflow for user validation
+2. **Phase B** (4-6 weeks): Enhance MVP based on learnings  
+3. **Phase C** (3-6 months): Migrate to full JavaScript architecture using existing `src/services/` foundation
 
 ## 🔧 AI Tool Integration
 

@@ -31,13 +31,27 @@ PE-Eval is an advanced document-driven AI automation platform designed for priva
 
 ## Technical Architecture
 
-### Document-Driven Workflow Architecture
-**⚠️ NEW ARCHITECTURE**: Transitioning from webhook-based to document-driven system
+### Dual-Track Architecture Implementation
 
-**Document Monitoring Flow (Enhanced with State Management):**
+**⚠️ NEW IMPLEMENTATION STRATEGY**: MVP n8n workflow → Full JavaScript architecture
+
+#### **MVP Track: n8n Workflow (Current Priority - 2 weeks)**
+**5-Node Workflow (Tasks 28-33):**
+```
+Google Drive Trigger → Extract From File → Metric Extraction (Code Node) → LLM Validation (OpenAI) → Google Sheets Update
+```
+
+**MVP Benefits:**
+- **Rapid deployment** using proven Phase 1 logic (89.6% accuracy)
+- **Cost-effective** development on n8n cloud platform  
+- **User validation** before full JavaScript investment
+- **Risk mitigation** through simplified architecture
+
+#### **Future Track: Full JavaScript Architecture (Phase 2+ - 3-6 months)**
+**Enhanced Document Monitoring Flow (Tasks 19-27):**
 ```
 Google Drive Document Changes → Push Notifications → n8n Webhook Handler 
-→ Document Type Detection → Content Extraction → Metric Extraction
+→ Document Type Detection → Content Extraction → Metric Extraction (MetricExtractor.js)
 → State Database Update → Delta Calculation → Historical Context Integration
 → 6 AI Agents (with Delta Intelligence) → Living Report Updates → Smart Notifications
 ```
@@ -79,21 +93,31 @@ Private Equity Analysis/
 
 ## Current Status
 
-### 🔄 **Architecture Transition Status**
-**Transitioning from webhook-based to document-driven architecture with state management**
+### 🔄 **Dual-Track Implementation Status**
+**MVP n8n workflow for rapid validation → Full JavaScript architecture for production scale**
 
-**Migration Progress**: Moving from manual company input to automated document monitoring with delta intelligence
+**Current Priority: MVP n8n Workflow (Tasks 28-33)**
 
-### Document-Driven + State Management Implementation Status
-- 🔧 **In Development**: Google Drive push notification system
-- 🔧 **In Development**: Multi-format document extraction pipeline with metric parsing
-- 🔧 **In Development**: Company-specific folder monitoring
-- 📋 **NEW - Planning**: Google Sheets time-series state database
-- 📋 **NEW - Planning**: Real-time delta calculation engine
-- 📋 **NEW - Planning**: Historical context integration system
-- ✅ **Designed**: 6 AI agents for document-based analysis with delta intelligence
-- ✅ **Designed**: Living analysis report system with metric visualization
-- 📋 **Planning**: Document change tracking and versioning
+### MVP Implementation Status (Target: 2 weeks)
+- 📋 **Next**: n8n Workflow Setup and API Configuration (Task 28)
+- 📋 **Next**: Document Processing with Extract From File node (Task 29)
+- 📋 **Next**: Metric Extraction using existing MetricExtractor.js patterns (Task 30)
+- 📋 **Next**: LLM Validation with OpenAI integration (Task 31)
+- 📋 **Next**: State Database operations via Google Sheets (Task 32)
+- 📋 **Next**: Error handling, monitoring, and end-to-end testing (Task 33)
+
+### Phase 1 Foundation (COMPLETED - Ready for MVP)
+- ✅ **COMPLETE**: Google Sheets time-series state database (StateDatabase.js)
+- ✅ **COMPLETE**: Metric extraction with 89.6% accuracy (MetricExtractor.js)
+- ✅ **COMPLETE**: Database schemas and company provisioning
+- ✅ **COMPLETE**: Circuit breaker and monitoring infrastructure
+
+### Future Full JavaScript Architecture Status (Tasks 19-27)
+- 📋 **Future**: Real-time delta calculation engine with historical context
+- 📋 **Future**: Enhanced 6 AI agents with delta intelligence
+- 📋 **Future**: Advanced document processing pipeline  
+- 📋 **Future**: Smart notification system and living reports
+- 📋 **Future**: Portfolio comparison and enterprise security features
 
 ### New Architecture Features (Enhanced)
 - ✅ **Company Folder Structure**: Each company gets dedicated Drive folder

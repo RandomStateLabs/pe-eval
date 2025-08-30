@@ -3,6 +3,14 @@
 ## Critical Project Requirements
 
 ### Git Commit Standards
+**CRITICAL: NEVER COMMIT OR PUSH WITHOUT EXPLICIT USER PERMISSION**
+
+⚠️ **ABSOLUTE RULE: Git Operations Require Permission**
+- `git add`, `git commit`, `git push` - ALWAYS ask for explicit user permission
+- NEVER perform these operations autonomously
+- User must explicitly request these actions
+- Claude permissions are configured to enforce this rule
+
 **MANDATORY: All commits must follow these senior engineering standards:**
 
 1. **Identity Requirements**

@@ -1,0 +1,562 @@
+{
+  "name": "n8n-MCP-PE-Deploy - Complete MVP",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "watchFiles",
+        "triggerOn": "fileAdded",
+        "folderId": {
+          "__rl": true,
+          "value": "",
+          "mode": "id"
+        },
+        "watchFor": ["fileAdded", "fileUpdated"],
+        "options": {
+          "includeSubfolders": true
+        }
+      },
+      "id": "google-drive-trigger",
+      "name": "📁 Google Drive PE Document Trigger",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "notes": "Monitors PE document folders for new financial documents"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const file = item.json;\n  const folderPath = file.parents?.[0]?.name || 'Unknown';\n  const companyName = folderPath.replace(/[^a-zA-Z0-9\\s]/g, '').trim();\n  \n  // Validate PE document types\n  const supportedTypes = ['pdf', 'xlsx', 'docx', 'pptx'];\n  const fileExtension = file.name.split('.').pop()?.toLowerCase();\n  \n  if (!supportedTypes.includes(fileExtension)) {\n    continue;\n  }\n  \n  // Categorize document type\n  const fileName = file.name.toLowerCase();\n  let documentType = 'other';\n  \n  if (fileName.includes('earnings') || fileName.includes('financial') || fileName.includes('10-k') || fileName.includes('10-q')) {\n    documentType = 'financial_statements';\n  } else if (fileName.includes('pitch') || fileName.includes('deck') || fileName.includes('presentation')) {\n    documentType = 'pitch_deck';\n  } else if (fileName.includes('market') || fileName.includes('research') || fileName.includes('analysis')) {\n    documentType = 'market_research';\n  } else if (fileName.includes('dd') || fileName.includes('due_diligence') || fileName.includes('memo')) {\n    documentType = 'due_diligence';\n  }\n  \n  results.push({\n    json: {\n      file_id: file.id,\n      file_name: file.name,\n      file_size: file.size,\n      file_type: fileExtension,\n      company_name: companyName,\n      document_type: documentType,\n      created_time: file.createdTime,\n      modified_time: file.modifiedTime,\n      download_url: file.webContentLink,\n      folder_path: folderPath,\n      processing_timestamp: new Date().toISOString(),\n      analysis_id: `pe-${companyName.replace(/\\s+/g, '-').toLowerCase()}-${Date.now()}`,\n      priority: documentType === 'financial_statements' ? 'high' : 'medium',\n      ready_for_processing: true\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "document-classifier",
+      "name": "📋 Document Classifier & Validator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "notes": "Classifies PE documents and extracts metadata"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "financial-check",
+              "leftValue": "={{ $json.document_type }}",
+              "rightValue": "financial_statements",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "document-router",
+      "name": "🔀 Document Type Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [700, 300],
+      "notes": "Routes documents based on type for specialized processing"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.download_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "document-downloader",
+      "name": "📥 Document Downloader",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [950, 200],
+      "notes": "Downloads financial documents for processing"
+    },
+    {
+      "parameters": {
+        "operation": "extractFromFile",
+        "fileType": "pdf",
+        "options": {
+          "maxPages": 50
+        }
+      },
+      "id": "pdf-extractor",
+      "name": "📄 PDF Text Extractor",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [1200, 200],
+      "notes": "Extracts text content from PDF financial documents"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const content = item.json.text || '';\n  \n  // Extract key financial metrics using regex patterns\n  const metrics = {\n    revenue: extractMetric(content, /revenue[:\\s]+\\$?([0-9,\\.]+)\\s*(million|billion|m|b)?/gi),\n    ebitda: extractMetric(content, /ebitda[:\\s]+\\$?([0-9,\\.]+)\\s*(million|billion|m|b)?/gi),\n    net_income: extractMetric(content, /net\\s+income[:\\s]+\\$?([0-9,\\.]+)\\s*(million|billion|m|b)?/gi),\n    total_assets: extractMetric(content, /total\\s+assets[:\\s]+\\$?([0-9,\\.]+)\\s*(million|billion|m|b)?/gi),\n    debt: extractMetric(content, /(total\\s+)?debt[:\\s]+\\$?([0-9,\\.]+)\\s*(million|billion|m|b)?/gi),\n    employees: extractMetric(content, /employees?[:\\s]+([0-9,]+)/gi)\n  };\n  \n  function extractMetric(text, pattern) {\n    const matches = text.match(pattern);\n    if (matches && matches.length > 0) {\n      const numbers = matches[0].match(/([0-9,\\.]+)/g);\n      return numbers ? parseFloat(numbers[0].replace(/,/g, '')) : null;\n    }\n    return null;\n  }\n  \n  // Calculate basic ratios\n  const ratios = {\n    debt_to_assets: metrics.debt && metrics.total_assets ? metrics.debt / metrics.total_assets : null,\n    ebitda_margin: metrics.ebitda && metrics.revenue ? metrics.ebitda / metrics.revenue : null,\n    net_margin: metrics.net_income && metrics.revenue ? metrics.net_income / metrics.revenue : null\n  };\n  \n  results.push({\n    json: {\n      ...item.json,\n      extracted_metrics: metrics,\n      calculated_ratios: ratios,\n      extraction_timestamp: new Date().toISOString(),\n      metrics_extracted: Object.values(metrics).some(v => v !== null),\n      ready_for_analysis: true\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "financial-parser",
+      "name": "💰 Financial Metrics Parser",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 200],
+      "notes": "Extracts key financial metrics from document text"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "company-summary",
+              "name": "company_summary",
+              "value": "={{ $json.company_name }} - {{ $json.document_type }} processed on {{ $json.processing_timestamp }}",
+              "type": "string"
+            },
+            {
+              "id": "analysis-score",
+              "name": "analysis_score",
+              "value": "={{ $json.metrics_extracted ? 85 : 45 }}",
+              "type": "number"
+            },
+            {
+              "id": "next-action",
+              "name": "next_action",
+              "value": "={{ $json.metrics_extracted ? 'deep_analysis' : 'manual_review' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "analysis-enricher",
+      "name": "📊 Analysis Data Enricher",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1700, 200],
+      "notes": "Enriches data with analysis metadata and scoring"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PE_Analysis_Results",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Company": "={{ $json.company_name }}",
+            "Document_Type": "={{ $json.document_type }}",
+            "Analysis_Score": "={{ $json.analysis_score }}",
+            "Revenue": "={{ $json.extracted_metrics?.revenue || 'N/A' }}",
+            "EBITDA": "={{ $json.extracted_metrics?.ebitda || 'N/A' }}",
+            "Net_Income": "={{ $json.extracted_metrics?.net_income || 'N/A' }}",
+            "Processing_Date": "={{ $json.processing_timestamp }}",
+            "Next_Action": "={{ $json.next_action }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "results-logger",
+      "name": "📈 Results Logger (Google Sheets)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1950, 200],
+      "notes": "Logs analysis results to Google Sheets dashboard"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.download_url }}",
+        "options": {}
+      },
+      "id": "general-downloader",
+      "name": "📥 General Document Downloader", 
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [950, 400],
+      "notes": "Downloads non-financial documents for basic processing"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "processing-status",
+              "name": "processing_status",
+              "value": "basic_metadata_only",
+              "type": "string"
+            },
+            {
+              "id": "review-needed",
+              "name": "review_needed",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true
+      },
+      "id": "basic-processor",
+      "name": "📝 Basic Document Processor",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1200, 400],
+      "notes": "Basic processing for non-financial documents"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "results-merger",
+      "name": "🔗 Results Merger",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1450, 300],
+      "notes": "Combines results from different processing paths"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "high-priority-check",
+              "leftValue": "={{ $json.analysis_score }}",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "priority-filter",
+      "name": "⚡ Priority Filter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1700, 300],
+      "notes": "Routes high-priority analyses for immediate notification"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "🚨 HIGH PRIORITY PE ANALYSIS COMPLETE 🚨\n\nCompany: {{ $json.company_name }}\nDocument: {{ $json.document_type }}\nScore: {{ $json.analysis_score }}/100\nRevenue: ${{ $json.extracted_metrics?.revenue || 'N/A' }}M\nEBITDA: ${{ $json.extracted_metrics?.ebitda || 'N/A' }}M\n\nNext Action: {{ $json.next_action }}\nProcessed: {{ $json.processing_timestamp }}",
+        "options": {}
+      },
+      "id": "slack-notification",
+      "name": "📱 Slack Alert (High Priority)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1950, 250],
+      "notes": "Sends immediate alerts for high-value opportunities"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Low_Priority_Queue",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Company": "={{ $json.company_name }}",
+            "Document_Type": "={{ $json.document_type }}",
+            "Processing_Status": "={{ $json.processing_status || 'pending_review' }}",
+            "Queued_Date": "={{ $json.processing_timestamp }}"
+          }
+        }
+      },
+      "id": "queue-logger",
+      "name": "📝 Queue Logger (Low Priority)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1950, 350],
+      "notes": "Logs lower priority items to review queue"
+    },
+    {
+      "parameters": {
+        "batchSize": 3,
+        "options": {}
+      },
+      "id": "batch-processor",
+      "name": "🔄 Batch Processor",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [500, 500],
+      "notes": "Processes documents in batches to manage API limits"
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "rate-limiter",
+      "name": "⏱️ Rate Limiter",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [750, 500],
+      "notes": "Prevents API rate limiting for downstream services"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "mode": "each",
+        "options": {
+          "fileName": "pe-analysis-{{ $json.company_name }}-{{ $now.format('YYYY-MM-DD') }}.json"
+        }
+      },
+      "id": "results-exporter",
+      "name": "💾 Results Exporter",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [2200, 300],
+      "notes": "Exports complete analysis results as JSON files"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "📊 PE Analysis Batch Complete!\n\nProcessed {{ $json.length }} documents\nCompleted at: {{ $now.format('YYYY-MM-DD HH:mm:ss') }}\n\nResults exported and logged to dashboards.",
+        "options": {}
+      },
+      "id": "completion-notification",
+      "name": "✅ Completion Notification",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [2450, 300],
+      "notes": "Notifies team when batch processing is complete"
+    }
+  ],
+  "connections": {
+    "📁 Google Drive PE Document Trigger": {
+      "main": [
+        [
+          {
+            "node": "📋 Document Classifier & Validator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🔄 Batch Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📋 Document Classifier & Validator": {
+      "main": [
+        [
+          {
+            "node": "🔀 Document Type Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔀 Document Type Router": {
+      "main": [
+        [
+          {
+            "node": "📥 Document Downloader",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📥 General Document Downloader",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📥 Document Downloader": {
+      "main": [
+        [
+          {
+            "node": "📄 PDF Text Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 PDF Text Extractor": {
+      "main": [
+        [
+          {
+            "node": "💰 Financial Metrics Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💰 Financial Metrics Parser": {
+      "main": [
+        [
+          {
+            "node": "📊 Analysis Data Enricher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Analysis Data Enricher": {
+      "main": [
+        [
+          {
+            "node": "📈 Results Logger (Google Sheets)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🔗 Results Merger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📥 General Document Downloader": {
+      "main": [
+        [
+          {
+            "node": "📝 Basic Document Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Basic Document Processor": {
+      "main": [
+        [
+          {
+            "node": "🔗 Results Merger",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "🔗 Results Merger": {
+      "main": [
+        [
+          {
+            "node": "⚡ Priority Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚡ Priority Filter": {
+      "main": [
+        [
+          {
+            "node": "📱 Slack Alert (High Priority)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📝 Queue Logger (Low Priority)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 Slack Alert (High Priority)": {
+      "main": [
+        [
+          {
+            "node": "💾 Results Exporter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Queue Logger (Low Priority)": {
+      "main": [
+        [
+          {
+            "node": "💾 Results Exporter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Batch Processor": {
+      "main": [
+        null,
+        [
+          {
+            "node": "⏱️ Rate Limiter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⏱️ Rate Limiter": {
+      "main": [
+        [
+          {
+            "node": "🔄 Batch Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Results Exporter": {
+      "main": [
+        [
+          {
+            "node": "✅ Completion Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

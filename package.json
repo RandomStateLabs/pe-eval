@@ -10,24 +10,29 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint src/",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "n8n:export": "node n8n/scripts/export.js",
+    "n8n:deploy": "node n8n/scripts/deploy.js",
+    "n8n:validate": "node n8n/scripts/validate.js",
+    "n8n:backup": "node n8n/scripts/backup.js"
   },
   "dependencies": {
-    "googleapis": "^118.0.0",
+    "axios": "^1.11.0",
+    "date-fns": "^2.30.0",
     "dotenv": "^16.3.1",
-    "winston": "^3.10.0",
     "express": "^4.18.2",
+    "googleapis": "^118.0.0",
     "joi": "^17.11.0",
     "node-cron": "^3.0.2",
     "uuid": "^9.0.1",
-    "date-fns": "^2.30.0"
+    "winston": "^3.10.0"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "eslint": "^8.52.0",
     "jest": "^29.7.0",
     "nodemon": "^3.0.1",
-    "eslint": "^8.52.0",
-    "prettier": "^3.0.3",
-    "@types/jest": "^29.5.5"
+    "prettier": "^3.0.3"
   },
   "keywords": [
     "private-equity",

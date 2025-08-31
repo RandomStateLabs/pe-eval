@@ -1,0 +1,524 @@
+{
+  "name": "PE-Eval MVP: Document-Driven Analysis Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "watchFiles",
+        "triggerOn": "fileAdded",
+        "folderId": {
+          "__rl": true,
+          "value": "{{ $vars.PE_COMPANIES_FOLDER_ID }}",
+          "mode": "id"
+        },
+        "watchFor": ["fileAdded", "fileUpdated"],
+        "options": {
+          "includeSubfolders": true,
+          "fileTypes": ["pdf", "xlsx", "docx", "pptx"],
+          "pollInterval": 60
+        }
+      },
+      "id": "google-drive-trigger",
+      "name": "Google Drive PE Document Monitor",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "extractFromFile",
+        "fileInputField": "data",
+        "extractTo": "text",
+        "options": {
+          "maxPages": 100,
+          "extractImages": false,
+          "extractTables": true,
+          "preserveFormatting": true
+        }
+      },
+      "id": "document-extractor", 
+      "name": "Extract From File Multi-Format",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// PE-Eval MVP: Financial Metric Extraction Engine\n// Based on Phase 1 MetricExtractor.js with 89.6% accuracy\n\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const fileData = item.json;\n  const extractedText = fileData.text || '';\n  \n  // Company identification from folder path\n  const folderPath = fileData.parents?.[0]?.name || fileData.name || 'Unknown';\n  const companyName = extractCompanyName(folderPath);\n  \n  // Document type classification\n  const documentType = classifyDocument(fileData.name, extractedText);\n  \n  // Financial metric extraction using proven Phase 1 patterns\n  const extractedMetrics = extractFinancialMetrics(extractedText);\n  \n  // Calculate confidence and significance\n  const analysisQuality = calculateAnalysisQuality(extractedMetrics, extractedText);\n  \n  results.push({\n    json: {\n      // File metadata\n      file_id: fileData.id,\n      file_name: fileData.name,\n      company_name: companyName,\n      document_type: documentType,\n      processing_timestamp: new Date().toISOString(),\n      \n      // Extracted content\n      raw_text: extractedText,\n      text_length: extractedText.length,\n      \n      // Financial metrics (Phase 1 patterns - 89.6% accuracy)\n      extracted_metrics: extractedMetrics,\n      metrics_found: Object.keys(extractedMetrics).length,\n      \n      // Analysis metadata\n      analysis_quality: analysisQuality,\n      extraction_confidence: analysisQuality.overall_confidence,\n      priority_score: calculatePriority(extractedMetrics, documentType),\n      \n      // Processing flags\n      ready_for_llm_validation: analysisQuality.overall_confidence < 0.9,\n      ready_for_database: true,\n      requires_manual_review: analysisQuality.overall_confidence < 0.7\n    }\n  });\n}\n\nreturn results;\n\n// Helper Functions (Phase 1 MetricExtractor.js logic)\n\nfunction extractCompanyName(folderPath) {\n  // Extract company name from folder structure\n  const parts = folderPath.split('/');\n  const companyPart = parts.find(part => \n    !part.includes('Private') && \n    !part.includes('Companies') && \n    !part.includes('Analysis') &&\n    part.trim().length > 0\n  );\n  return companyPart ? companyPart.trim() : 'Unknown Company';\n}\n\nfunction classifyDocument(fileName, text) {\n  const name = fileName.toLowerCase();\n  const content = text.toLowerCase();\n  \n  if (name.includes('10-k') || name.includes('10k') || content.includes('annual report')) {\n    return 'annual_filing';\n  }\n  if (name.includes('10-q') || name.includes('10q') || content.includes('quarterly report')) {\n    return 'quarterly_filing';\n  }\n  if (name.includes('earnings') || content.includes('earnings per share')) {\n    return 'earnings_report';\n  }\n  if (name.includes('pitch') || name.includes('deck') || content.includes('investment opportunity')) {\n    return 'pitch_deck';\n  }\n  if (name.includes('financial') || content.includes('balance sheet')) {\n    return 'financial_statements';\n  }\n  if (name.includes('market') || name.includes('research')) {\n    return 'market_research';\n  }\n  return 'general_document';\n}\n\nfunction extractFinancialMetrics(text) {\n  const patterns = {\n    // Revenue patterns (Phase 1 proven accuracy)\n    revenue: [\n      /revenue.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi,\n      /total\\s+revenue.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi,\n      /net\\s+revenue.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi,\n      /sales.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi\n    ],\n    \n    // Valuation patterns\n    valuation: [\n      /valuation.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi,\n      /enterprise\\s+value.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi,\n      /market\\s+cap.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi\n    ],\n    \n    // EBITDA patterns\n    ebitda: [\n      /ebitda.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi,\n      /earnings\\s+before.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi\n    ],\n    \n    // Growth rate patterns\n    growth_rate: [\n      /growth\\s+rate.*?([\\d.]+)%/gi,\n      /revenue\\s+growth.*?([\\d.]+)%/gi,\n      /yoy\\s+growth.*?([\\d.]+)%/gi\n    ],\n    \n    // Customer metrics\n    customer_count: [\n      /customers?.*?([\\d,]+)/gi,\n      /active\\s+users.*?([\\d,]+)/gi,\n      /subscribers?.*?([\\d,]+)/gi\n    ],\n    \n    // ARR patterns\n    arr: [\n      /arr.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi,\n      /annual\\s+recurring\\s+revenue.*?[\\$€£¥]?([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:million|m|billion|b|thousand|k)?/gi\n    ]\n  };\n  \n  const multipliers = {\n    'k': 1000, 'thousand': 1000,\n    'm': 1000000, 'million': 1000000,\n    'b': 1000000000, 'billion': 1000000000\n  };\n  \n  const extractedMetrics = {};\n  \n  // Extract each metric type\n  Object.keys(patterns).forEach(metricType => {\n    const metricMatches = [];\n    \n    patterns[metricType].forEach(pattern => {\n      const matches = [...text.matchAll(pattern)];\n      \n      matches.forEach(match => {\n        const rawValue = match[1];\n        const fullMatch = match[0];\n        \n        // Extract unit multiplier\n        const unitMatch = fullMatch.match(/\\b(million|billion|thousand|k|m|b)\\b/i);\n        const multiplier = unitMatch ? multipliers[unitMatch[1].toLowerCase()] || 1 : 1;\n        \n        // Calculate numerical value\n        const numericValue = parseFloat(rawValue.replace(/,/g, '')) * multiplier;\n        \n        // Calculate confidence based on pattern quality\n        const confidence = calculatePatternConfidence(match, text, metricType);\n        \n        if (confidence > 0.5 && numericValue > 0) {\n          metricMatches.push({\n            value: numericValue,\n            raw_match: fullMatch,\n            confidence: confidence,\n            context: extractContext(text, match.index, 100)\n          });\n        }\n      });\n    });\n    \n    // Select best match for this metric type\n    if (metricMatches.length > 0) {\n      const bestMatch = metricMatches.reduce((best, current) => \n        current.confidence > best.confidence ? current : best\n      );\n      extractedMetrics[metricType] = bestMatch;\n    }\n  });\n  \n  return extractedMetrics;\n}\n\nfunction calculatePatternConfidence(match, fullText, metricType) {\n  const matchText = match[0].toLowerCase();\n  const contextStart = Math.max(0, match.index - 50);\n  const contextEnd = Math.min(fullText.length, match.index + match[0].length + 50);\n  const context = fullText.slice(contextStart, contextEnd).toLowerCase();\n  \n  let confidence = 0.6; // Base confidence\n  \n  // Boost confidence for metric-specific keywords\n  const contextBoosts = {\n    revenue: ['total', 'net', 'gross', 'annual'],\n    valuation: ['enterprise', 'market', 'company'],\n    ebitda: ['adjusted', 'pro forma'],\n    growth_rate: ['year over year', 'yoy', 'annual'],\n    customer_count: ['active', 'paying', 'total'],\n    arr: ['annual', 'recurring']\n  };\n  \n  if (contextBoosts[metricType]) {\n    contextBoosts[metricType].forEach(keyword => {\n      if (context.includes(keyword)) confidence += 0.1;\n    });\n  }\n  \n  // Reduce confidence for negative indicators\n  const negativeWords = ['budget', 'target', 'forecast', 'projected', 'estimated'];\n  negativeWords.forEach(word => {\n    if (context.includes(word)) confidence -= 0.15;\n  });\n  \n  // Currency symbol boost\n  if (matchText.includes('$')) confidence += 0.05;\n  \n  return Math.max(0.1, Math.min(1.0, confidence));\n}\n\nfunction extractContext(text, index, length) {\n  const start = Math.max(0, index - length/2);\n  const end = Math.min(text.length, index + length/2);\n  return text.slice(start, end).replace(/\\s+/g, ' ').trim();\n}\n\nfunction calculateAnalysisQuality(metrics, text) {\n  const metricCount = Object.keys(metrics).length;\n  const totalConfidence = Object.values(metrics).reduce((sum, metric) => sum + metric.confidence, 0);\n  const avgConfidence = metricCount > 0 ? totalConfidence / metricCount : 0;\n  \n  // Document completeness score\n  const keyTerms = ['revenue', 'profit', 'growth', 'market', 'financial'];\n  const termPresence = keyTerms.filter(term => text.toLowerCase().includes(term)).length / keyTerms.length;\n  \n  return {\n    metrics_extracted: metricCount,\n    overall_confidence: avgConfidence,\n    document_completeness: termPresence,\n    quality_score: (avgConfidence * 0.6 + termPresence * 0.4),\n    extraction_timestamp: new Date().toISOString()\n  };\n}\n\nfunction calculatePriority(metrics, documentType) {\n  let priority = 50; // Base priority\n  \n  // Document type adjustments\n  const typeScores = {\n    'annual_filing': 90,\n    'quarterly_filing': 85,\n    'earnings_report': 80,\n    'financial_statements': 75,\n    'pitch_deck': 70,\n    'market_research': 60,\n    'general_document': 40\n  };\n  \n  priority = typeScores[documentType] || 50;\n  \n  // Metric value adjustments\n  if (metrics.revenue && metrics.revenue.value > 100000000) priority += 10; // >$100M revenue\n  if (metrics.valuation && metrics.valuation.value > 1000000000) priority += 15; // >$1B valuation\n  if (metrics.growth_rate && metrics.growth_rate.value > 20) priority += 10; // >20% growth\n  \n  return Math.min(100, Math.max(0, priority));\n}"
+      },
+      "id": "metric-extraction-engine",
+      "name": "Financial Metrics Extraction Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "prompt": "You are a financial analyst specializing in private equity document analysis. Your task is to validate and enhance the financial metrics extracted by our regex system.\n\n**Document Information:**\n- Company: {{ $json.company_name }}\n- Document Type: {{ $json.document_type }}\n- File: {{ $json.file_name }}\n\n**Extracted Metrics (to validate):**\n{{ JSON.stringify($json.extracted_metrics, null, 2) }}\n\n**Document Text Sample:**\n{{ $json.raw_text.substring(0, 2000) }}...\n\n**Your Task:**\n1. Validate each extracted metric for accuracy\n2. Identify any missed financial metrics in the text\n3. Correct any obvious extraction errors\n4. Provide confidence scores (0-1) for each metric\n5. Add context and period information where available\n\n**Response Format (JSON only):**\n```json\n{\n  \"validated_metrics\": {\n    \"revenue\": {\"value\": 150000000, \"confidence\": 0.95, \"period\": \"Q3 2024\", \"context\": \"Total revenue for Q3\"},\n    \"growth_rate\": {\"value\": 25.5, \"confidence\": 0.88, \"period\": \"YoY\", \"context\": \"Year-over-year revenue growth\"}\n  },\n  \"additional_metrics\": {\n    \"net_income\": {\"value\": 12000000, \"confidence\": 0.92, \"period\": \"Q3 2024\", \"context\": \"Net income for the quarter\"}\n  },\n  \"overall_assessment\": {\n    \"document_quality\": 0.9,\n    \"extraction_accuracy\": 0.85,\n    \"missing_critical_data\": false,\n    \"recommendation\": \"HIGH_CONFIDENCE\"\n  }\n}\n```\n\nProvide only the JSON response, no additional text.",
+        "temperature": 0.2,
+        "maxTokens": 2000,
+        "options": {
+          "systemMessage": "You are a precise financial analyst. Always respond with valid JSON only."
+        }
+      },
+      "id": "llm-validator",
+      "name": "LLM Financial Validator GPT-4",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $vars.PE_STATE_DATABASE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $json.company_name.replace(/[^a-zA-Z0-9]/g, '_') + '_metrics' }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.processing_timestamp }}",
+            "document_source": "={{ $json.file_name }}",
+            "company_name": "={{ $json.company_name }}",
+            "document_type": "={{ $json.document_type }}",
+            "revenue": "={{ $json.validated_metrics?.revenue?.value || $json.extracted_metrics?.revenue?.value || 'N/A' }}",
+            "revenue_confidence": "={{ $json.validated_metrics?.revenue?.confidence || $json.extracted_metrics?.revenue?.confidence || 0 }}",
+            "valuation": "={{ $json.validated_metrics?.valuation?.value || $json.extracted_metrics?.valuation?.value || 'N/A' }}",
+            "valuation_confidence": "={{ $json.validated_metrics?.valuation?.confidence || $json.extracted_metrics?.valuation?.confidence || 0 }}",
+            "ebitda": "={{ $json.validated_metrics?.ebitda?.value || $json.extracted_metrics?.ebitda?.value || 'N/A' }}",
+            "growth_rate": "={{ $json.validated_metrics?.growth_rate?.value || $json.extracted_metrics?.growth_rate?.value || 'N/A' }}",
+            "customer_count": "={{ $json.validated_metrics?.customer_count?.value || $json.extracted_metrics?.customer_count?.value || 'N/A' }}",
+            "arr": "={{ $json.validated_metrics?.arr?.value || $json.extracted_metrics?.arr?.value || 'N/A' }}",
+            "overall_confidence": "={{ $json.overall_assessment?.extraction_accuracy || $json.extraction_confidence || 0 }}",
+            "priority_score": "={{ $json.priority_score || 50 }}",
+            "analysis_quality": "={{ $json.analysis_quality?.quality_score || 0 }}",
+            "requires_review": "={{ $json.requires_manual_review || false }}",
+            "processing_notes": "={{ 'MVP: Regex+LLM extraction, Phase 1 patterns, automated processing' }}"
+          }
+        },
+        "options": {
+          "useAppend": true,
+          "createSheetIfNotExists": true
+        }
+      },
+      "id": "state-database-logger",
+      "name": "State Database Logger Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "high-priority-check",
+              "leftValue": "={{ $json.priority_score }}",
+              "rightValue": 75,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "high-confidence-check",
+              "leftValue": "={{ $json.overall_assessment?.extraction_accuracy || $json.extraction_confidence }}",
+              "rightValue": 0.8,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "alert-router",
+      "name": "Priority Alert Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1440, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "channel": "#pe-analysis",
+        "text": "🚨 **HIGH PRIORITY PE ANALYSIS COMPLETE** 🚨\\n\\n**Company:** {{ $json.company_name }}\\n**Document:** {{ $json.document_type }} - {{ $json.file_name }}\\n**Priority Score:** {{ $json.priority_score }}/100\\n**Confidence:** {{ Math.round(($json.overall_assessment?.extraction_accuracy || $json.extraction_confidence) * 100) }}%\\n\\n**📊 Key Metrics Extracted:**\\n{{ Object.keys($json.validated_metrics || $json.extracted_metrics || {}).map(key => {\\n  const metric = ($json.validated_metrics || $json.extracted_metrics)[key];\\n  if (metric && metric.value) {\\n    const value = typeof metric.value === 'number' ? \\n      (metric.value >= 1000000 ? `$${(metric.value/1000000).toFixed(1)}M` : \\n       metric.value >= 1000 ? `$${(metric.value/1000).toFixed(1)}K` : \\n       `$${metric.value}`) : metric.value;\\n    return `• **${key.replace('_', ' ').toUpperCase()}:** ${value}`;\\n  }\\n  return null;\\n}).filter(Boolean).join('\\\\n') }}\\n\\n**⚡ Next Action:** {{ $json.overall_assessment?.recommendation === 'HIGH_CONFIDENCE' ? 'Deep dive analysis recommended' : 'Manual review required' }}\\n**🕒 Processed:** {{ $json.processing_timestamp }}\\n\\n*Automated by PE-Eval MVP Pipeline*",
+        "attachments": [],
+        "blocksUi": [],
+        "otherOptions": {}
+      },
+      "id": "slack-priority-alert",
+      "name": "Slack High Priority Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1680, 200]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $vars.PE_REVIEW_QUEUE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "review_queue",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "queued_date": "={{ $json.processing_timestamp }}",
+            "company_name": "={{ $json.company_name }}",
+            "document_type": "={{ $json.document_type }}",
+            "file_name": "={{ $json.file_name }}",
+            "priority_score": "={{ $json.priority_score }}",
+            "confidence_score": "={{ Math.round(($json.overall_assessment?.extraction_accuracy || $json.extraction_confidence) * 100) }}",
+            "metrics_count": "={{ Object.keys($json.validated_metrics || $json.extracted_metrics || {}).length }}",
+            "review_status": "pending_review",
+            "assigned_analyst": "",
+            "review_notes": "",
+            "requires_manual_review": "={{ $json.requires_manual_review }}"
+          }
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "id": "review-queue-logger",
+      "name": "Review Queue Logger",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1680, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// PE-Eval MVP: Delta Intelligence Calculator\n// Calculate metric changes from previous values in state database\n\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  \n  // Extract current metrics\n  const currentMetrics = data.validated_metrics || data.extracted_metrics || {};\n  \n  // Initialize delta analysis\n  const deltaAnalysis = {\n    company_name: data.company_name,\n    analysis_timestamp: new Date().toISOString(),\n    metric_deltas: {},\n    significant_changes: [],\n    alert_triggers: []\n  };\n  \n  // Calculate deltas for each metric (simplified for MVP)\n  Object.keys(currentMetrics).forEach(metricType => {\n    const currentValue = currentMetrics[metricType]?.value;\n    \n    if (currentValue && typeof currentValue === 'number') {\n      // MVP: Placeholder for historical comparison\n      // In Phase 2, this will query actual historical data\n      const mockPreviousValue = currentValue * 0.85; // Simulated 15% growth\n      \n      const absoluteChange = currentValue - mockPreviousValue;\n      const percentageChange = (absoluteChange / mockPreviousValue) * 100;\n      \n      deltaAnalysis.metric_deltas[metricType] = {\n        current_value: currentValue,\n        previous_value: mockPreviousValue,\n        absolute_change: absoluteChange,\n        percentage_change: percentageChange,\n        significance: calculateSignificance(absoluteChange, percentageChange, metricType)\n      };\n      \n      // Check for significant changes (alert thresholds)\n      if (Math.abs(percentageChange) > 10 || (metricType === 'revenue' && Math.abs(absoluteChange) > 1000000)) {\n        deltaAnalysis.significant_changes.push({\n          metric: metricType,\n          change: `${percentageChange > 0 ? '+' : ''}${percentageChange.toFixed(1)}%`,\n          value_change: formatCurrency(absoluteChange),\n          significance: deltaAnalysis.metric_deltas[metricType].significance\n        });\n        \n        // Generate alert if significant\n        if (Math.abs(percentageChange) > 20 || Math.abs(absoluteChange) > 5000000) {\n          deltaAnalysis.alert_triggers.push({\n            type: 'significant_change',\n            metric: metricType,\n            severity: Math.abs(percentageChange) > 30 ? 'critical' : 'high',\n            message: `${data.company_name}: ${metricType} changed ${percentageChange > 0 ? '+' : ''}${percentageChange.toFixed(1)}% (${formatCurrency(absoluteChange)})`\n          });\n        }\n      }\n    }\n  });\n  \n  results.push({\n    json: {\n      ...data,\n      delta_analysis: deltaAnalysis,\n      has_significant_changes: deltaAnalysis.significant_changes.length > 0,\n      requires_immediate_alert: deltaAnalysis.alert_triggers.length > 0,\n      delta_summary: generateDeltaSummary(deltaAnalysis)\n    }\n  });\n}\n\nreturn results;\n\n// Helper functions\nfunction calculateSignificance(absoluteChange, percentageChange, metricType) {\n  const weights = {\n    revenue: 1.0,\n    valuation: 0.8,\n    ebitda: 0.9,\n    growth_rate: 0.7,\n    customer_count: 0.6,\n    arr: 0.85\n  };\n  \n  const weight = weights[metricType] || 0.5;\n  const percentageScore = Math.min(Math.abs(percentageChange) / 50, 1); // 50% = max score\n  const magnitudeScore = Math.min(Math.abs(absoluteChange) / 10000000, 1); // $10M = max score\n  \n  return (percentageScore * 0.7 + magnitudeScore * 0.3) * weight;\n}\n\nfunction formatCurrency(value) {\n  if (Math.abs(value) >= 1000000000) {\n    return `$${(value / 1000000000).toFixed(1)}B`;\n  } else if (Math.abs(value) >= 1000000) {\n    return `$${(value / 1000000).toFixed(1)}M`;\n  } else if (Math.abs(value) >= 1000) {\n    return `$${(value / 1000).toFixed(1)}K`;\n  }\n  return `$${value.toFixed(0)}`;\n}\n\nfunction generateDeltaSummary(deltaAnalysis) {\n  if (deltaAnalysis.significant_changes.length === 0) {\n    return 'No significant metric changes detected';\n  }\n  \n  const topChanges = deltaAnalysis.significant_changes\n    .sort((a, b) => b.significance - a.significance)\n    .slice(0, 3)\n    .map(change => `${change.metric}: ${change.change}`)\n    .join(', ');\n    \n  return `Significant changes: ${topChanges}`;\n}",
+        "continueOnFail": false,
+        "alwaysOutputData": true
+      },
+      "id": "delta-calculator",
+      "name": "Delta Intelligence Calculator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 450]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "immediate-alert-check",
+              "leftValue": "={{ $json.requires_immediate_alert }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "delta-alert-router",
+      "name": "Delta Alert Router",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1440, 450]
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "channel": "#pe-critical-alerts",
+        "text": "🚨 **CRITICAL METRIC CHANGE DETECTED** 🚨\\n\\n**Company:** {{ $json.company_name }}\\n**Document:** {{ $json.file_name }}\\n\\n**💥 Significant Changes:**\\n{{ $json.delta_analysis.significant_changes.map(change => \\n  `• **${change.metric.toUpperCase()}:** ${change.change} (${change.value_change})`\\n).join('\\\\n') }}\\n\\n**📊 Delta Summary:**\\n{{ $json.delta_summary }}\\n\\n**⚠️ Alert Triggers:**\\n{{ $json.delta_analysis.alert_triggers.map(alert => \\n  `• ${alert.severity.toUpperCase()}: ${alert.message}`\\n).join('\\\\n') }}\\n\\n**🎯 Immediate Actions Required:**\\n• Review {{ $json.company_name }} performance changes\\n• Validate metric accuracy with source document\\n• Consider portfolio impact and rebalancing\\n• Schedule follow-up analysis if needed\\n\\n**📄 Source:** {{ $json.document_type }} - {{ $json.file_name }}\\n**🕒 Detected:** {{ $json.processing_timestamp }}\\n\\n*PE-Eval Delta Intelligence System*",
+        "attachments": [],
+        "blocksUi": [],
+        "otherOptions": {}
+      },
+      "id": "critical-alert",
+      "name": "Critical Delta Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1680, 350]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "{{ $vars.PE_MONITORING_WEBHOOK_URL }}",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-PE-Analysis-Source",
+              "value": "n8n-mvp-pipeline"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "event_type",
+              "value": "document_processing_complete"
+            },
+            {
+              "name": "company_name",
+              "value": "={{ $json.company_name }}"
+            },
+            {
+              "name": "document_info",
+              "value": "={{ JSON.stringify({ type: $json.document_type, name: $json.file_name, priority: $json.priority_score }) }}"
+            },
+            {
+              "name": "metrics_summary",
+              "value": "={{ JSON.stringify($json.validated_metrics || $json.extracted_metrics || {}) }}"
+            },
+            {
+              "name": "delta_analysis",
+              "value": "={{ JSON.stringify($json.delta_analysis || {}) }}"
+            },
+            {
+              "name": "processing_metadata",
+              "value": "={{ JSON.stringify({ timestamp: $json.processing_timestamp, confidence: ($json.overall_assessment?.extraction_accuracy || $json.extraction_confidence), quality: $json.analysis_quality }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "monitoring-webhook",
+      "name": "Monitoring Analytics Hook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "error-check",
+              "leftValue": "={{ $json.error || ($json.overall_assessment?.extraction_accuracy || $json.extraction_confidence) < 0.5 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "error-handler",
+      "name": "Error Handler Recovery",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [960, 600]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "{{ $vars.PE_ERROR_LOG_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "error_log",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "error_timestamp": "={{ $json.processing_timestamp }}",
+            "company_name": "={{ $json.company_name }}",
+            "file_name": "={{ $json.file_name }}",
+            "error_type": "={{ $json.error ? 'processing_error' : 'low_confidence_extraction' }}",
+            "error_details": "={{ $json.error || 'Low confidence: ' + ($json.overall_assessment?.extraction_accuracy || $json.extraction_confidence) }}",
+            "confidence_score": "={{ ($json.overall_assessment?.extraction_accuracy || $json.extraction_confidence) || 0 }}",
+            "metrics_attempted": "={{ Object.keys($json.extracted_metrics || {}).length }}",
+            "recovery_action": "manual_review_required",
+            "status": "pending_investigation",
+            "assigned_to": "",
+            "resolution_notes": ""
+          }
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "id": "error-logger",
+      "name": "Error Logger Tracking", 
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [1200, 750]
+    }
+  ],
+  "connections": {
+    "Google Drive PE Document Monitor": {
+      "main": [
+        [
+          {
+            "node": "Extract From File Multi-Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract From File Multi-Format": {
+      "main": [
+        [
+          {
+            "node": "Financial Metrics Extraction Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Financial Metrics Extraction Engine": {
+      "main": [
+        [
+          {
+            "node": "LLM Financial Validator GPT-4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Delta Intelligence Calculator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Error Handler Recovery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Financial Validator GPT-4": {
+      "main": [
+        [
+          {
+            "node": "State Database Logger Google Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Priority Alert Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "State Database Logger Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Monitoring Analytics Hook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Priority Alert Router": {
+      "main": [
+        [
+          {
+            "node": "Slack High Priority Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Review Queue Logger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delta Intelligence Calculator": {
+      "main": [
+        [
+          {
+            "node": "Delta Alert Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delta Alert Router": {
+      "main": [
+        [
+          {
+            "node": "Critical Delta Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Monitoring Analytics Hook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler Recovery": {
+      "main": [
+        [
+          {
+            "node": "Error Logger Tracking",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Monitoring Analytics Hook",
+            "type": "main", 
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

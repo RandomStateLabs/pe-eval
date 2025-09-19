@@ -99,7 +99,7 @@ Configuration will depend on chosen storage solution (Google Sheets, PostgreSQL,
 - Extracts financial metrics with confidence scores
 - Identifies: Revenue, EBITDA, Cash Flow, Growth Rates, Customer Metrics
 
-### 3. Quality Validation
+### 3. Data Validation (PROPOSED)
 - **High Quality (>85%)**: Auto-approved and stored
 - **Medium Quality (60-85%)**: Manual review queue
 - **Low Quality (<60%)**: Rejected with error logging
@@ -109,19 +109,16 @@ Configuration will depend on chosen storage solution (Google Sheets, PostgreSQL,
 - Calculates percentage changes
 - Identifies significant trends and anomalies
 
-## 📊 Supported Metrics
-
+## 📊 Example Metrics
 ### Core Financial Metrics
-- **Revenue**: Annual, quarterly, monthly figures
-- **EBITDA**: Earnings before interest, taxes, depreciation, amortization
-- **Cash Flow**: Operating, free cash flow metrics
-- **Growth Rates**: YoY, CAGR, MoM growth calculations
-
-### Business Metrics
-- **Customer Metrics**: Customer count, user acquisition
-- **ARR/MRR**: Annual/Monthly recurring revenue
-- **Burn Rate**: Monthly cash consumption
-- **Valuation**: Company valuation and funding rounds
+- **Revenue**
+- **EBITDA**
+- **Cash Flow**
+- **Growth Rates**
+- **Customer Metrics**
+- **ARR/MRR**
+- **Burn Rate**
+- **Valuation**
 
 ### Project Structure
 
@@ -165,20 +162,6 @@ Key N8N workflow parameters:
 - **Folder Monitoring**: Configurable Google Drive folder IDs
 - **Processing Timeout**: 5 minutes per document
 - **Retry Logic**: 3 attempts with exponential backoff
-
-## 📈 Monitoring and Alerts
-
-### Quality Metrics
-- **Processing Success Rate**: >95% target
-- **Extraction Accuracy**: >90% confidence score
-- **Processing Time**: <5 minutes average
-- **System Uptime**: >99.5% availability
-
-### Alert Conditions
-- Significant metric changes (>10% variance)
-- Processing failures or timeouts
-- Quality score drops below thresholds
-- System component health issues
 
 ## 📚 Related Documentation
 

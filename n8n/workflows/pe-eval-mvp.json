@@ -1,0 +1,272 @@
+{
+  "name": "PE_EVAL_MVP",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "=https://drive.google.com/drive/u/0/folders/1Dgbt5EUHEyeA27alUYku1M_jwTFBBcp5",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Google Drive Trigger",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        256,
+        304
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "QqvzERIcwvF9J8g8",
+          "name": "Google Drive account"
+        }
+      },
+      "notes": "Monitors company folders for new documents (PDFs, Excel, Word, PowerPoint files)"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain",
+              "drawingsToFormat": "application/pdf",
+              "slidesToFormat": "application/pdf"
+            }
+          }
+        }
+      },
+      "id": "2",
+      "name": "Download File from Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        464,
+        304
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "QqvzERIcwvF9J8g8",
+          "name": "Google Drive account"
+        }
+      },
+      "notes": "Downloads the binary content of the uploaded file"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "id": "3",
+      "name": "Extract Text from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        640,
+        304
+      ],
+      "notes": "Extracts text content from PDF, Excel, Word, PowerPoint files"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.data }}\n\nAnalyze the following financial document and extract ALL financial metrics, ratios, and key performance indicators found in the document.\n\nCreate a CSV output where:\n1. The FIRST ROW contains headers based on the metrics you actually find\n2. Each subsequent row contains the extracted data for each metric\n\nREQUIRED BASE COLUMNS (always include these):\n- Company\n- Document_Name  \n- Metric_Name\n- Value\n- Period\n\nDYNAMIC COLUMNS (add only if data is available):\n- Category (if you can categorize the metric)\n- Unit (if currency/percentage/multiple is specified)\n- Confidence (if you can assess data reliability)\n- Source_Page (if page/location is identifiable)\n- Note (if context/calculation method is relevant)\n- Growth_Rate (if period-over-period growth is calculable)\n- Margin_Type (if it's a margin/ratio metric)\n- Forecast_vs_Actual (if document distinguishes projections vs actuals)\n- Segment (if metric is broken down by business segment)\n- [Any other relevant attributes you discover]\n\nINSTRUCTIONS:\n- Analyze the document first to understand what metrics and attributes are available\n- Create headers that capture ALL the relevant dimensions found in this specific document\n- Include a header for any additional context that would be valuable for analysis\n- Ensure each row contains data for one metric\n- Use clear, underscore-separated header names (no spaces)\n- Put \"NULL\" for any missing values rather than leaving cells empty\n\nEXAMPLE OUTPUT STRUCTURE (adapt headers based on actual document content):"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {
+          "maxTokens": 2000,
+          "temperature": 0.2
+        }
+      },
+      "id": "5",
+      "name": "AI Validation (OpenAI)",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        960,
+        304
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "kfQ0Mv3LR5XeQylW",
+          "name": "OpenAi account"
+        }
+      },
+      "notes": "AI validation to catch missed metrics and validate extractions"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Updated Prepare Sheet Data Node - matches new AI prompt structure\n// Processes the new Income Statement periods format from OpenAI\n\nconst results = [];\n\nfor (const item of items) {\n  try {\n    // Parse AI response - handle different OpenAI node output structures\n    let aiResponse;\n    \n    if (typeof item.json === 'string') {\n      aiResponse = JSON.parse(item.json);\n    } else if (item.json.message && item.json.message.content) {\n      // Handle OpenAI node response structure\n      const content = item.json.message.content;\n      aiResponse = typeof content === 'string' ? JSON.parse(content) : content;\n    } else if (item.json.response) {\n      // Alternative OpenAI response format\n      aiResponse = typeof item.json.response === 'string' \n        ? JSON.parse(item.json.response)\n        : item.json.response;\n    } else {\n      aiResponse = item.json;\n    }\n    \n    console.log('Parsed AI response:', JSON.stringify(aiResponse, null, 2));\n    \n    // Extract company info\n    const company = aiResponse.company || 'Unknown Company';\n    \n    // Process each period from the AI response\n    const periods = aiResponse.periods || [];\n    \n    if (periods.length === 0) {\n      console.log('No periods found in AI response');\n      // Create error row if no periods found\n      results.push({\n        json: {\n          'Month': 'No Data',\n          'Revenue (EUR)': 0,\n          'COGS(EUR)': 0,\n          'Gross Profit (EUR)': 0,\n          'Salaries (EUR)': 0,\n          'Marketing (EUR)': 0,\n          'R&D (EUR)': 0,\n          'Admin (EUR)': 0,\n          'Operating Expenses (EUR)': 0,\n          'EBITDA (EUR)': 0,\n          'Deprication (EUR)': 0,\n          'EBIT (EUR)': 0,\n          'Interest (EUR)': 0,\n          'Taxes (EUR)': 0,\n          'Net Income (EUR)': 0\n        }\n      });\n    }\n    \n    // Convert each period to a Google Sheets row\n    for (const period of periods) {\n      const sheetRow = {\n        'Month': period.month || 'Unknown',\n        'Revenue (EUR)': period.revenue || 0,\n        'COGS(EUR)': period.cogs || 0,\n        'Gross Profit (EUR)': period.grossProfit || 0,\n        'Salaries (EUR)': period.salaries || 0,\n        'Marketing (EUR)': period.marketing || 0,\n        'R&D (EUR)': period.rnd || 0,\n        'Admin (EUR)': period.admin || 0,\n        'Operating Expenses (EUR)': period.operatingExpenses || 0,\n        'EBITDA (EUR)': period.ebitda || 0,\n        'Deprication (EUR)': period.depreciation || 0,\n        'EBIT (EUR)': period.ebit || 0,\n        'Interest (EUR)': period.interest || 0,\n        'Taxes (EUR)': period.taxes || 0,\n        'Net Income (EUR)': period.netIncome || 0\n      };\n      \n      results.push({ json: sheetRow });\n      console.log(`Added row for ${period.month}: Revenue=${period.revenue}, EBITDA=${period.ebitda}`);\n    }\n    \n  } catch (error) {\n    console.error('Error processing AI response:', error);\n    console.error('Raw item:', JSON.stringify(item.json, null, 2));\n    \n    // Create error row with detailed error info\n    results.push({\n      json: {\n        'Month': `ERROR: ${error.message}`,\n        'Revenue (EUR)': 0,\n        'COGS(EUR)': 0,\n        'Gross Profit (EUR)': 0,\n        'Salaries (EUR)': 0,\n        'Marketing (EUR)': 0,\n        'R&D (EUR)': 0,\n        'Admin (EUR)': 0,\n        'Operating Expenses (EUR)': 0,\n        'EBITDA (EUR)': 0,\n        'Deprication (EUR)': 0,\n        'EBIT (EUR)': 0,\n        'Interest (EUR)': 0,\n        'Taxes (EUR)': 0,\n        'Net Income (EUR)': 0\n      }\n    });\n  }\n}\n\nconsole.log(`Successfully prepared ${results.length} Income Statement rows for Google Sheets`);\nreturn results;"
+      },
+      "id": "6",
+      "name": "Prepare Sheet Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        304
+      ],
+      "notes": "Formats validated metrics for Google Sheets storage"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "=https://docs.google.com/spreadsheets/d/1B4tsCVY7jNfWsEoaTgrMBN1h_NG4MFzbY_k9xCtI5Es/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Month",
+              "displayName": "Month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Revenue",
+              "displayName": "Revenue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "7",
+      "name": "Update Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1376,
+        304
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bI9HRN0JJ3pR7tkk",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Stores metrics in company-specific sheets with historical tracking"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download File from Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File from Drive": {
+      "main": [
+        [
+          {
+            "node": "Extract Text from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Text from File": {
+      "main": [
+        [
+          {
+            "node": "AI Validation (OpenAI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Validation (OpenAI)": {
+      "main": [
+        [
+          {
+            "node": "Prepare Sheet Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Sheet Data": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/New_York",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "versionId": "e203b2bf-d392-4a49-b9e0-2376dacb569d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1e7702b7c856a6d0309b409496e8182170561ee36e8c837c437772b26f4c97bd"
+  },
+  "id": "U6BVPk7tD3p9c1xr",
+  "tags": []
+}

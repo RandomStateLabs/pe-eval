@@ -31,6 +31,21 @@ pe-eval/
 └── CLAUDE.md              # This file
 ```
 
+## Documentation File Purposes
+
+| Document | Purpose |
+|--------------------------------|---------------------------------|
+| LIVE_TECHNICAL_DOC.md          | Current working state           |
+| PLANNED_SYSTEM_ARCHITECTURE.md | Future plans                    |
+| PROJECT_OVERVIEW.md            | Business overview DO NOT MODIFY |
+| SAMPLE_EMAIL_OUTPUT.md         | Output template DO NOT MODIFY   |
+
+**IMPORTANT RULES:**
+- **NEVER modify** SAMPLE_EMAIL_OUTPUT.md - it's the expected output template that GPT-4 should generate
+- **NEVER modify** PROJECT_OVERVIEW.md - it's the business overview only, no implementation details
+- LIVE_TECHNICAL_DOC.md should **ONLY** reflect the current working state (currently 6 nodes)
+- PLANNED_SYSTEM_ARCHITECTURE.md should **ONLY** contain future plans and brainstorming (two-workflow architecture)
+
 ## Common Commands
 
 ### N8N Management

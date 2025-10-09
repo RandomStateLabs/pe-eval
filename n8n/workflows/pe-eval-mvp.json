@@ -1,5 +1,5 @@
 {
-  "name": "PE_EVAL_MVP",
+  "name": "My workflow",
   "nodes": [
     {
       "parameters": {
@@ -13,23 +13,23 @@
         "triggerOn": "specificFolder",
         "folderToWatch": {
           "__rl": true,
-          "value": "=https://drive.google.com/drive/u/0/folders/1Dgbt5EUHEyeA27alUYku1M_jwTFBBcp5",
+          "value": "https://drive.google.com/drive/u/3/folders/1hLHsNf61aREVHin_8zek3AdonpWHwKN5",
           "mode": "url"
         },
         "event": "fileCreated",
         "options": {}
       },
-      "id": "1",
+      "id": "6e80d170-410b-4fed-a2b9-e02475d57c4a",
       "name": "Google Drive Trigger",
       "type": "n8n-nodes-base.googleDriveTrigger",
       "typeVersion": 1,
       "position": [
-        256,
-        304
+        64,
+        0
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "QqvzERIcwvF9J8g8",
+          "id": "EJIwyqqrzOtJ0lL9",
           "name": "Google Drive account"
         }
       },
@@ -53,17 +53,17 @@
           }
         }
       },
-      "id": "2",
+      "id": "47eb0ac9-17f1-41d3-815e-5a86dd1de70e",
       "name": "Download File from Drive",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        464,
-        304
+        272,
+        0
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "QqvzERIcwvF9J8g8",
+          "id": "EJIwyqqrzOtJ0lL9",
           "name": "Google Drive account"
         }
       },
@@ -74,13 +74,13 @@
         "operation": "text",
         "options": {}
       },
-      "id": "3",
+      "id": "c95a2d15-05a8-42d8-9680-4932f1314814",
       "name": "Extract Text from File",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        640,
-        304
+        448,
+        0
       ],
       "notes": "Extracts text content from PDF, Excel, Word, PowerPoint files"
     },
@@ -94,27 +94,27 @@
         "messages": {
           "values": [
             {
-              "content": "={{ $json.data }}\n\nAnalyze the following financial document and extract ALL financial metrics, ratios, and key performance indicators found in the document.\n\nCreate a CSV output where:\n1. The FIRST ROW contains headers based on the metrics you actually find\n2. Each subsequent row contains the extracted data for each metric\n\nREQUIRED BASE COLUMNS (always include these):\n- Company\n- Document_Name  \n- Metric_Name\n- Value\n- Period\n\nDYNAMIC COLUMNS (add only if data is available):\n- Category (if you can categorize the metric)\n- Unit (if currency/percentage/multiple is specified)\n- Confidence (if you can assess data reliability)\n- Source_Page (if page/location is identifiable)\n- Note (if context/calculation method is relevant)\n- Growth_Rate (if period-over-period growth is calculable)\n- Margin_Type (if it's a margin/ratio metric)\n- Forecast_vs_Actual (if document distinguishes projections vs actuals)\n- Segment (if metric is broken down by business segment)\n- [Any other relevant attributes you discover]\n\nINSTRUCTIONS:\n- Analyze the document first to understand what metrics and attributes are available\n- Create headers that capture ALL the relevant dimensions found in this specific document\n- Include a header for any additional context that would be valuable for analysis\n- Ensure each row contains data for one metric\n- Use clear, underscore-separated header names (no spaces)\n- Put \"NULL\" for any missing values rather than leaving cells empty\n\nEXAMPLE OUTPUT STRUCTURE (adapt headers based on actual document content):"
+              "content": "={{ $json.data }}\nYou are a financial document analysis expert. Analyze the following document and extract ALL financial metrics, KPIs, and data points you can find.\n\n  IMPORTANT: Do not limit yourself to predefined metrics. Extract any financial data that appears, even if you've never seen that metric type before.\n\n  PHASE 1 - DOCUMENT UNDERSTANDING:\n  First, identify:\n  - Document type (income statement, balance sheet, investor deck, etc.)\n  - Company name\n  - Time period(s) covered\n  - Currency used\n\n  PHASE 2 - COMPREHENSIVE METRIC DISCOVERY:\n  Scan the entire document and identify ALL potential financial metrics including but not limited to:\n  - Revenue metrics (total revenue, recurring revenue, revenue per customer, etc.)\n  - Profitability metrics (EBITDA, gross margin, net income, etc.)\n  - Growth metrics (YoY growth, quarter growth, CAGR, etc.)\n  - Customer metrics (customer count, CAC, LTV, churn rate, etc.)\n  - Operational metrics (burn rate, runway, headcount, etc.)\n  - Valuation metrics (valuation, price per share, market cap, etc.)\n  - Ratios and percentages (margins, conversion rates, retention rates, etc.)\n  - Any other financial data points you discover\n\n  PHASE 3 - EXTRACTION WITH CONFIDENCE:\n  For each metric found, extract:\n  - Exact name as it appears in the document\n  - Standardized/normalized name (use common financial terminology)\n  - Numeric value only (convert text like \"10M\" to 10000000)\n  - Unit (USD, EUR, %, ratio, count, etc.)\n  - Time period this metric represents\n  - Your confidence level (0.0 to 1.0) based on clarity and context\n  - Source location (page number, section, table name if applicable)\n  - Brief context (surrounding text that helped you identify this metric)\n\n  PHASE 4 - OUTPUT FORMAT:\n  Return a JSON object with this exact structure:\n\n  {\n    \"document_info\": {\n      \"document_name\": \"exact filename or title\",\n      \"company_name\": \"company name found in document\",\n      \"document_type\": \"income_statement|balance_sheet|investor_deck|financial_report|other\",\n      \"primary_currency\": \"USD|EUR|GBP|etc\",\n      \"periods_covered\": [\"2024-Q1\", \"2024-Q2\"] // or whatever periods you find\n    },\n    \"metrics_discovered\": [\n      {\n        \"raw_name\": \"Total Revenue\", // exactly as found in document\n        \"standardized_name\": \"revenue\", // normalized name using standard terminology\n        \"category\": \"revenue|expense|ratio|count|growth_rate|margin|other\",\n        \"value\": 10000000, // numeric only, no text\n        \"unit\": \"USD\", // currency, %, ratio, count, etc.\n        \"period\": \"2024-Q1\", // specific period this metric represents\n        \"confidence\": 0.95, // your confidence level 0.0-1.0\n        \"source_location\": \"page 3, Income Statement table\",\n        \"extraction_context\": \"Q1 2024 Total Revenue: $10.0M (up 15% YoY)\"\n      },\n      {\n        \"raw_name\": \"Customer Acquisition Cost\",\n        \"standardized_name\": \"customer_acquisition_cost\",\n        \"category\": \"ratio\",\n        \"value\": 125.50,\n        \"unit\": \"USD\",\n        \"period\": \"2024-Q1\",\n        \"confidence\": 0.87,\n        \"source_location\": \"page 7, Key Metrics section\",\n        \"extraction_context\": \"Blended CAC decreased to $125.50 in Q1\"\n      }\n    ]\n  }\n\n  CRITICAL INSTRUCTIONS:\n  1. Extract EVERY financial metric you find, even unusual or company-specific ones\n  2. Use consistent standardized names (revenue, not \"total_revenue\" or \"sales\")\n  3. Convert all values to pure numbers (no commas, dollar signs, or text)\n  4. Be conservative with confidence scores - only use 0.9+ for very clear extractions\n  5. If you find the same metric for multiple periods, create separate entries\n  6. If a value seems unreasonable, still extract it but lower the confidence score\n\n  Return only the JSON object, no additional text."
             }
           ]
         },
         "jsonOutput": true,
         "options": {
-          "maxTokens": 2000,
+          "maxTokens": 4000,
           "temperature": 0.2
         }
       },
-      "id": "5",
+      "id": "5fe23e74-8d3c-43b3-ba5d-bbbe64a488e9",
       "name": "AI Validation (OpenAI)",
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        960,
-        304
+        624,
+        0
       ],
       "credentials": {
         "openAiApi": {
-          "id": "kfQ0Mv3LR5XeQylW",
+          "id": "7deU81XNhPjacQHS",
           "name": "OpenAi account"
         }
       },
@@ -122,15 +122,15 @@
     },
     {
       "parameters": {
-        "jsCode": "// Updated Prepare Sheet Data Node - matches new AI prompt structure\n// Processes the new Income Statement periods format from OpenAI\n\nconst results = [];\n\nfor (const item of items) {\n  try {\n    // Parse AI response - handle different OpenAI node output structures\n    let aiResponse;\n    \n    if (typeof item.json === 'string') {\n      aiResponse = JSON.parse(item.json);\n    } else if (item.json.message && item.json.message.content) {\n      // Handle OpenAI node response structure\n      const content = item.json.message.content;\n      aiResponse = typeof content === 'string' ? JSON.parse(content) : content;\n    } else if (item.json.response) {\n      // Alternative OpenAI response format\n      aiResponse = typeof item.json.response === 'string' \n        ? JSON.parse(item.json.response)\n        : item.json.response;\n    } else {\n      aiResponse = item.json;\n    }\n    \n    console.log('Parsed AI response:', JSON.stringify(aiResponse, null, 2));\n    \n    // Extract company info\n    const company = aiResponse.company || 'Unknown Company';\n    \n    // Process each period from the AI response\n    const periods = aiResponse.periods || [];\n    \n    if (periods.length === 0) {\n      console.log('No periods found in AI response');\n      // Create error row if no periods found\n      results.push({\n        json: {\n          'Month': 'No Data',\n          'Revenue (EUR)': 0,\n          'COGS(EUR)': 0,\n          'Gross Profit (EUR)': 0,\n          'Salaries (EUR)': 0,\n          'Marketing (EUR)': 0,\n          'R&D (EUR)': 0,\n          'Admin (EUR)': 0,\n          'Operating Expenses (EUR)': 0,\n          'EBITDA (EUR)': 0,\n          'Deprication (EUR)': 0,\n          'EBIT (EUR)': 0,\n          'Interest (EUR)': 0,\n          'Taxes (EUR)': 0,\n          'Net Income (EUR)': 0\n        }\n      });\n    }\n    \n    // Convert each period to a Google Sheets row\n    for (const period of periods) {\n      const sheetRow = {\n        'Month': period.month || 'Unknown',\n        'Revenue (EUR)': period.revenue || 0,\n        'COGS(EUR)': period.cogs || 0,\n        'Gross Profit (EUR)': period.grossProfit || 0,\n        'Salaries (EUR)': period.salaries || 0,\n        'Marketing (EUR)': period.marketing || 0,\n        'R&D (EUR)': period.rnd || 0,\n        'Admin (EUR)': period.admin || 0,\n        'Operating Expenses (EUR)': period.operatingExpenses || 0,\n        'EBITDA (EUR)': period.ebitda || 0,\n        'Deprication (EUR)': period.depreciation || 0,\n        'EBIT (EUR)': period.ebit || 0,\n        'Interest (EUR)': period.interest || 0,\n        'Taxes (EUR)': period.taxes || 0,\n        'Net Income (EUR)': period.netIncome || 0\n      };\n      \n      results.push({ json: sheetRow });\n      console.log(`Added row for ${period.month}: Revenue=${period.revenue}, EBITDA=${period.ebitda}`);\n    }\n    \n  } catch (error) {\n    console.error('Error processing AI response:', error);\n    console.error('Raw item:', JSON.stringify(item.json, null, 2));\n    \n    // Create error row with detailed error info\n    results.push({\n      json: {\n        'Month': `ERROR: ${error.message}`,\n        'Revenue (EUR)': 0,\n        'COGS(EUR)': 0,\n        'Gross Profit (EUR)': 0,\n        'Salaries (EUR)': 0,\n        'Marketing (EUR)': 0,\n        'R&D (EUR)': 0,\n        'Admin (EUR)': 0,\n        'Operating Expenses (EUR)': 0,\n        'EBITDA (EUR)': 0,\n        'Deprication (EUR)': 0,\n        'EBIT (EUR)': 0,\n        'Interest (EUR)': 0,\n        'Taxes (EUR)': 0,\n        'Net Income (EUR)': 0\n      }\n    });\n  }\n}\n\nconsole.log(`Successfully prepared ${results.length} Income Statement rows for Google Sheets`);\nreturn results;"
+        "jsCode": "// NEW: Process dynamic metrics from improved AI prompt\n  const results = [];\n\n  for (const item of items) {\n    try {\n      // Parse AI response - handle different OpenAI node output structures\n      let aiResponse;\n\n      if (typeof item.json === 'string') {\n        aiResponse = JSON.parse(item.json);\n      } else if (item.json.message && item.json.message.content) {\n        const content = item.json.message.content;\n        aiResponse = typeof content === 'string' ? JSON.parse(content) : content;\n      } else if (item.json.response) {\n        aiResponse = typeof item.json.response === 'string'\n          ? JSON.parse(item.json.response)\n          : item.json.response;\n      } else {\n        aiResponse = item.json;\n      }\n\n      console.log('Parsed AI response:', JSON.stringify(aiResponse, null, 2));\n\n      // Extract document info\n      const docInfo = aiResponse.document_info || {};\n      const metrics = aiResponse.metrics_discovered || [];\n\n      if (metrics.length === 0) {\n        console.log('No metrics found in AI response');\n        results.push({\n          json: {\n            entity_id: 'NO_METRICS',\n            document_name: docInfo.document_name || 'Unknown',\n            metric_name: 'no_data',\n            value: 0,\n            error: 'No metrics discovered',\n            date_added: new Date().toISOString()\n          }\n        });\n      }\n\n      // Convert each metric to an EAV row for Google Sheets\n      for (const metric of metrics) {\n        const entityId = `${docInfo.company_name || 'Unknown'}_${metric.period || 'Unknown'}_${Date.now()}`;\n\n        const sheetRow = {\n          entity_id: entityId,\n          document_name: docInfo.document_name || 'Unknown',\n          company_name: docInfo.company_name || 'Unknown',\n          metric_name: metric.standardized_name || metric.raw_name,\n          raw_metric_name: metric.raw_name,\n          value: metric.value || 0,\n          unit: metric.unit || '',\n          period: metric.period || '',\n          confidence: metric.confidence || 0,\n          category: metric.category || '',\n          source_location: metric.source_location || '',\n          extraction_context: metric.extraction_context || '',\n          document_type: docInfo.document_type || '',\n          date_added: new Date().toISOString()\n        };\n\n        results.push({ json: sheetRow });\n        console.log(`Added row: ${metric.standardized_name} = ${metric.value} (${metric.period})`);\n      }\n\n    } catch (error) {\n      console.error('Error processing AI response:', error);\n      console.error('Raw item:', JSON.stringify(item.json, null, 2));\n\n      results.push({\n        json: {\n          entity_id: 'ERROR',\n          document_name: 'Processing Error',\n          metric_name: 'error',\n          value: 0,\n          error: error.message,\n          date_added: new Date().toISOString()\n        }\n      });\n    }\n  }\n\n  console.log(`Successfully prepared ${results.length} metric rows for Google Sheets`);\n  return results;"
       },
-      "id": "6",
+      "id": "dc1e0406-bc91-48d3-a170-f855f41d1574",
       "name": "Prepare Sheet Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1232,
-        304
+        912,
+        0
       ],
       "notes": "Formats validated metrics for Google Sheets storage"
     },
@@ -139,13 +139,17 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "=https://docs.google.com/spreadsheets/d/1B4tsCVY7jNfWsEoaTgrMBN1h_NG4MFzbY_k9xCtI5Es/edit?gid=0#gid=0",
-          "mode": "url"
+          "value": "1W5qmI08XGm1ZaZ4ZDX0cfkkrdbh-sPiUN86Y-h-SpVY",
+          "mode": "list",
+          "cachedResultName": "Company Financials ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W5qmI08XGm1ZaZ4ZDX0cfkkrdbh-sPiUN86Y-h-SpVY/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
-          "value": "Sheet1",
-          "mode": "name"
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W5qmI08XGm1ZaZ4ZDX0cfkkrdbh-sPiUN86Y-h-SpVY/edit#gid=0"
         },
         "columns": {
           "mappingMode": "autoMapInputData",
@@ -153,8 +157,8 @@
           "matchingColumns": [],
           "schema": [
             {
-              "id": "Month",
-              "displayName": "Month",
+              "id": "entity_id",
+              "displayName": "entity_id",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -163,8 +167,128 @@
               "removed": false
             },
             {
-              "id": "Revenue",
-              "displayName": "Revenue",
+              "id": "document_name",
+              "displayName": "document_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "metric_name",
+              "displayName": "metric_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "raw_metric_name",
+              "displayName": "raw_metric_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "value",
+              "displayName": "value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "unit",
+              "displayName": "unit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "period",
+              "displayName": "period",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "confidence",
+              "displayName": "confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "source_location",
+              "displayName": "source_location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "extraction_context",
+              "displayName": "extraction_context",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "document_type",
+              "displayName": "document_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "date_added",
+              "displayName": "date_added",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -178,17 +302,17 @@
         },
         "options": {}
       },
-      "id": "7",
+      "id": "c13f7f01-4efc-4f5f-84d4-f2833c606016",
       "name": "Update Google Sheet",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        1376,
-        304
+        1104,
+        0
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "bI9HRN0JJ3pR7tkk",
+          "id": "8BL3ysETXImbyOPE",
           "name": "Google Sheets account"
         }
       },
@@ -253,20 +377,15 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
-    "executionOrder": "v1",
-    "timezone": "America/New_York",
-    "saveDataErrorExecution": "all",
-    "saveDataSuccessExecution": "all",
-    "saveManualExecutions": true,
-    "saveExecutionProgress": true
+    "executionOrder": "v1"
   },
-  "versionId": "e203b2bf-d392-4a49-b9e0-2376dacb569d",
+  "versionId": "7f5edcf9-efdf-4280-acab-e8b36ef7fb84",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "1e7702b7c856a6d0309b409496e8182170561ee36e8c837c437772b26f4c97bd"
+    "instanceId": "0bbcba5101cb69b5f5f55ed71e6111b6bb22c473de47e383ddafffa0fd18f290"
   },
-  "id": "U6BVPk7tD3p9c1xr",
+  "id": "wBp6wqY0uAacMcjI",
   "tags": []
 }

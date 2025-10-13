@@ -317,6 +317,50 @@
         }
       },
       "notes": "Stores metrics in company-specific sheets with historical tracking"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/analyze-company",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "company_name",
+              "value": "={{ $json.company_name }}"
+            },
+            {
+              "name": "latest_period",
+              "value": "={{ $json.period }}"
+            },
+            {
+              "name": "document_name",
+              "value": "={{ $json.document_name }}"
+            },
+            {
+              "name": "document_type",
+              "value": "={{ $json.document_type }}"
+            },
+            {
+              "name": "metrics_count",
+              "value": "={{ $items().length }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "a7f91d28-6c4e-4a1b-9f3a-8e5b2d4c7a9f",
+      "name": "Trigger Analysis Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1296,
+        0
+      ],
+      "continueOnFail": true,
+      "notes": "Fire-and-forget trigger to Workflow 2 for investment analysis"
     }
   ],
   "pinData": {},
@@ -370,6 +414,17 @@
         [
           {
             "node": "Update Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Trigger Analysis Workflow",
             "type": "main",
             "index": 0
           }

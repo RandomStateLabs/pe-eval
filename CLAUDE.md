@@ -124,6 +124,36 @@ The system extracts and tracks Financial metrics:
 - Comprehensive logging for debugging
 - Graceful degradation for API failures
 
+### Git Workflow Standards
+
+**Branch Strategy:**
+- **main**: Stable, working code only - never commit directly to main
+- **feature/***: Development branches for new features (e.g., `feature/workflow2-analysis-engine`)
+- **fix/***: Bug fix branches (e.g., `fix/metric-extraction-bug`)
+
+**File Modification Policy:**
+- **ALWAYS modify existing files** instead of creating duplicates
+- Example: Modify `My workflow.json` directly, DON'T create `My workflow-enhanced.json`
+- Version control tracks changes - no need for multiple versions of the same file
+
+**Documentation Creation Policy:**
+- **NEVER create new markdown files without explicit user consent**
+- Reason: Too many docs create confusion and increase token usage in AI conversations
+- Established docs: `LIVE_TECHNICAL_DOC.md`, `PLANNED_SYSTEM_ARCHITECTURE.md`, `PROJECT_OVERVIEW.md`, `SAMPLE_EMAIL_OUTPUT.md`
+- Ask before creating new documentation files
+
+**Commit Message Standards:**
+- Use descriptive, imperative mood messages (e.g., "Add folder_id tracking to Node 5")
+- Include context about what changed and why
+- Reference related issues or features when applicable
+
+**Workflow Process:**
+1. Create feature branch from main: `git checkout -b feature/feature-name`
+2. Make changes and commit regularly with clear messages
+3. Test thoroughly on the feature branch
+4. When ready, create pull request or merge to main
+5. Delete feature branch after successful merge
+
 ## MCP Server Integration
 
 ### Available Servers

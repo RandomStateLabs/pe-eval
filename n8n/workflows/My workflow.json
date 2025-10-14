@@ -3,6 +3,50 @@
   "nodes": [
     {
       "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/analyze-company",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "company_name",
+              "value": "={{ $json.company_name }}"
+            },
+            {
+              "name": "latest_period",
+              "value": "={{ $json.period }}"
+            },
+            {
+              "name": "document_name",
+              "value": "={{ $json.document_name }}"
+            },
+            {
+              "name": "document_type",
+              "value": "={{ $json.document_type }}"
+            },
+            {
+              "name": "metrics_count",
+              "value": "={{ $items().length }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "id": "784a256e-cda2-4f59-b9d5-fb507a60210c",
+      "name": "Trigger Analysis Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1376,
+        144
+      ],
+      "continueOnFail": true,
+      "notes": "Fire-and-forget trigger to Workflow 2 for investment analysis"
+    },
+    {
+      "parameters": {
         "pollTimes": {
           "item": [
             {
@@ -19,13 +63,13 @@
         "event": "fileCreated",
         "options": {}
       },
-      "id": "6e80d170-410b-4fed-a2b9-e02475d57c4a",
-      "name": "Google Drive Trigger",
+      "id": "ba80d8dd-3d6a-48fc-b14c-6a7a1b6f247a",
+      "name": "Google Drive Trigger1",
       "type": "n8n-nodes-base.googleDriveTrigger",
       "typeVersion": 1,
       "position": [
-        64,
-        0
+        144,
+        144
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -53,13 +97,13 @@
           }
         }
       },
-      "id": "47eb0ac9-17f1-41d3-815e-5a86dd1de70e",
-      "name": "Download File from Drive",
+      "id": "b4e8dfec-952a-467c-aff9-d4a0c6042396",
+      "name": "Download File from Drive1",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        272,
-        0
+        352,
+        144
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -74,13 +118,13 @@
         "operation": "text",
         "options": {}
       },
-      "id": "c95a2d15-05a8-42d8-9680-4932f1314814",
-      "name": "Extract Text from File",
+      "id": "ff3e0c67-a1a2-4071-aa4a-a795998fdf2e",
+      "name": "Extract Text from File1",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        448,
-        0
+        528,
+        144
       ],
       "notes": "Extracts text content from PDF, Excel, Word, PowerPoint files"
     },
@@ -104,13 +148,13 @@
           "temperature": 0.2
         }
       },
-      "id": "5fe23e74-8d3c-43b3-ba5d-bbbe64a488e9",
-      "name": "AI Validation (OpenAI)",
+      "id": "245812f7-8bd7-403d-b62a-71a26606244e",
+      "name": "AI Validation (OpenAI)1",
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        624,
-        0
+        704,
+        144
       ],
       "credentials": {
         "openAiApi": {
@@ -124,13 +168,13 @@
       "parameters": {
         "jsCode": "// NEW: Process dynamic metrics from improved AI prompt\n  const results = [];\n\n  for (const item of items) {\n    try {\n      // Parse AI response - handle different OpenAI node output structures\n      let aiResponse;\n\n      if (typeof item.json === 'string') {\n        aiResponse = JSON.parse(item.json);\n      } else if (item.json.message && item.json.message.content) {\n        const content = item.json.message.content;\n        aiResponse = typeof content === 'string' ? JSON.parse(content) : content;\n      } else if (item.json.response) {\n        aiResponse = typeof item.json.response === 'string'\n          ? JSON.parse(item.json.response)\n          : item.json.response;\n      } else {\n        aiResponse = item.json;\n      }\n\n      console.log('Parsed AI response:', JSON.stringify(aiResponse, null, 2));\n\n      // Extract document info\n      const docInfo = aiResponse.document_info || {};\n      const metrics = aiResponse.metrics_discovered || [];\n\n      if (metrics.length === 0) {\n        console.log('No metrics found in AI response');\n        results.push({\n          json: {\n            entity_id: 'NO_METRICS',\n            document_name: docInfo.document_name || 'Unknown',\n            metric_name: 'no_data',\n            value: 0,\n            error: 'No metrics discovered',\n            date_added: new Date().toISOString()\n          }\n        });\n      }\n\n      // Convert each metric to an EAV row for Google Sheets\n      for (const metric of metrics) {\n        const entityId = `${docInfo.company_name || 'Unknown'}_${metric.period || 'Unknown'}_${Date.now()}`;\n\n        const sheetRow = {\n          entity_id: entityId,\n          document_name: docInfo.document_name || 'Unknown',\n          company_name: docInfo.company_name || 'Unknown',\n          metric_name: metric.standardized_name || metric.raw_name,\n          raw_metric_name: metric.raw_name,\n          value: metric.value || 0,\n          unit: metric.unit || '',\n          period: metric.period || '',\n          confidence: metric.confidence || 0,\n          category: metric.category || '',\n          source_location: metric.source_location || '',\n          extraction_context: metric.extraction_context || '',\n          document_type: docInfo.document_type || '',\n          date_added: new Date().toISOString()\n        };\n\n        results.push({ json: sheetRow });\n        console.log(`Added row: ${metric.standardized_name} = ${metric.value} (${metric.period})`);\n      }\n\n    } catch (error) {\n      console.error('Error processing AI response:', error);\n      console.error('Raw item:', JSON.stringify(item.json, null, 2));\n\n      results.push({\n        json: {\n          entity_id: 'ERROR',\n          document_name: 'Processing Error',\n          metric_name: 'error',\n          value: 0,\n          error: error.message,\n          date_added: new Date().toISOString()\n        }\n      });\n    }\n  }\n\n  console.log(`Successfully prepared ${results.length} metric rows for Google Sheets`);\n  return results;"
       },
-      "id": "dc1e0406-bc91-48d3-a170-f855f41d1574",
-      "name": "Prepare Sheet Data",
+      "id": "4add889d-6177-473c-896a-e8f83be0bb90",
+      "name": "Prepare Sheet Data1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        912,
-        0
+        992,
+        144
       ],
       "notes": "Formats validated metrics for Google Sheets storage"
     },
@@ -302,13 +346,13 @@
         },
         "options": {}
       },
-      "id": "c13f7f01-4efc-4f5f-84d4-f2833c606016",
-      "name": "Update Google Sheet",
+      "id": "835a9ee2-c309-4cc2-8e6d-aa914bd8eba6",
+      "name": "Update Google Sheet1",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        1104,
-        0
+        1184,
+        144
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -317,110 +361,66 @@
         }
       },
       "notes": "Stores metrics in company-specific sheets with historical tracking"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://localhost:5678/webhook/analyze-company",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "company_name",
-              "value": "={{ $json.company_name }}"
-            },
-            {
-              "name": "latest_period",
-              "value": "={{ $json.period }}"
-            },
-            {
-              "name": "document_name",
-              "value": "={{ $json.document_name }}"
-            },
-            {
-              "name": "document_type",
-              "value": "={{ $json.document_type }}"
-            },
-            {
-              "name": "metrics_count",
-              "value": "={{ $items().length }}"
-            }
-          ]
-        },
-        "options": {
-          "timeout": 5000
-        }
-      },
-      "id": "a7f91d28-6c4e-4a1b-9f3a-8e5b2d4c7a9f",
-      "name": "Trigger Analysis Workflow",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1296,
-        0
-      ],
-      "continueOnFail": true,
-      "notes": "Fire-and-forget trigger to Workflow 2 for investment analysis"
     }
   ],
   "pinData": {},
   "connections": {
-    "Google Drive Trigger": {
+    "Google Drive Trigger1": {
       "main": [
         [
           {
-            "node": "Download File from Drive",
+            "node": "Download File from Drive1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Download File from Drive": {
+    "Download File from Drive1": {
       "main": [
         [
           {
-            "node": "Extract Text from File",
+            "node": "Extract Text from File1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Extract Text from File": {
+    "Extract Text from File1": {
       "main": [
         [
           {
-            "node": "AI Validation (OpenAI)",
+            "node": "AI Validation (OpenAI)1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI Validation (OpenAI)": {
+    "AI Validation (OpenAI)1": {
       "main": [
         [
           {
-            "node": "Prepare Sheet Data",
+            "node": "Prepare Sheet Data1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepare Sheet Data": {
+    "Prepare Sheet Data1": {
       "main": [
         [
           {
-            "node": "Update Google Sheet",
+            "node": "Update Google Sheet1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Update Google Sheet": {
+    "Update Google Sheet1": {
       "main": [
         [
           {
@@ -436,7 +436,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "7f5edcf9-efdf-4280-acab-e8b36ef7fb84",
+  "versionId": "1c5113e0-8fb0-4d08-8405-be77a80beec0",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0bbcba5101cb69b5f5f55ed71e6111b6bb22c473de47e383ddafffa0fd18f290"

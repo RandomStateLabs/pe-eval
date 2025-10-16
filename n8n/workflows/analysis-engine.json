@@ -8,13 +8,13 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "f62ac282-c72c-436d-bb8b-c964e991648e",
+      "id": "862481a5-731c-4519-9591-4d7473889188",
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -224,
-        144
+        -1120,
+        128
       ],
       "webhookId": "analyze-company-webhook",
       "notes": "Receives company context from Workflow 1: folder_id, company_name, latest_period, document_name, document_type, metrics_count"
@@ -30,13 +30,13 @@
           "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W5qmI08XGm1ZaZ4ZDX0cfkkrdbh-sPiUN86Y-h-SpVY/edit?usp=drivesdk"
         }
       },
-      "id": "0daa4557-82e0-44fa-b0d7-b7532ca3d51d",
+      "id": "43f28a8f-3dfe-4cf1-a9ca-b20b531b4a98",
       "name": "Query Historical Data",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        0,
-        144
+        -896,
+        128
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -50,13 +50,13 @@
       "parameters": {
         "jsCode": "// Calculate YoY and QoQ trends for financial metrics\nconst historicalData = items;\nconst webhookData = $('Webhook Trigger').item.json.body;\n\nconsole.log(`Processing ${historicalData.length} historical metric rows`);\n\n// Group metrics by period\nconst metricsByPeriod = {};\n\nfor (const item of historicalData) {\n  const period = item.json.period;\n  const metricName = item.json.metric_name;\n  \n  if (!metricsByPeriod[period]) {\n    metricsByPeriod[period] = {};\n  }\n  \n  metricsByPeriod[period][metricName] = {\n    value: parseFloat(item.json.value),\n    unit: item.json.unit,\n    confidence: parseFloat(item.json.confidence),\n    raw_name: item.json.raw_metric_name,\n    category: item.json.category,\n    document_name: item.json.document_name,\n    date_added: item.json.date_added\n  };\n}\n\n// Sort periods chronologically (assuming format like \"2024-Q1\", \"2023-Q4\", etc.)\nconst periods = Object.keys(metricsByPeriod).sort().reverse();\nconsole.log('Periods found:', periods);\n\nif (periods.length === 0) {\n  return [{\n    json: {\n      error: 'No historical data found',\n      company_name: webhookData.company_name,\n      folder_id: webhookData.folder_id,\n      periods_analyzed: 0\n    }\n  }];\n}\n\n// Helper function to calculate percentage change\nfunction calculateChange(current, previous) {\n  if (!previous || previous === 0) return null;\n  return ((current - previous) / Math.abs(previous)) * 100;\n}\n\n// Helper function to determine trend direction\nfunction getTrendDirection(changePercent) {\n  if (changePercent === null) return 'unknown';\n  if (Math.abs(changePercent) < 5) return 'stable';\n  return changePercent > 0 ? 'growing' : 'declining';\n}\n\n// Helper function to determine significance\nfunction getSignificance(changePercent) {\n  if (changePercent === null) return 'unknown';\n  const absChange = Math.abs(changePercent);\n  if (absChange >= 20) return 'high';\n  if (absChange >= 10) return 'moderate';\n  return 'low';\n}\n\n// Calculate trends for the latest period\nconst latestPeriod = periods[0];\nconst latestMetrics = metricsByPeriod[latestPeriod];\n\nconst enrichedMetrics = [];\n\nfor (const [metricName, metricData] of Object.entries(latestMetrics)) {\n  const enrichedMetric = {\n    metric_name: metricName,\n    raw_name: metricData.raw_name,\n    category: metricData.category,\n    current_period: latestPeriod,\n    current_value: metricData.value,\n    unit: metricData.unit,\n    confidence: metricData.confidence\n  };\n  \n  // Find QoQ (Quarter over Quarter) comparison\n  if (periods.length >= 2) {\n    const priorQuarter = periods[1];\n    if (metricsByPeriod[priorQuarter] && metricsByPeriod[priorQuarter][metricName]) {\n      const priorValue = metricsByPeriod[priorQuarter][metricName].value;\n      const qoqChange = calculateChange(metricData.value, priorValue);\n      \n      enrichedMetric.qoq_prior_period = priorQuarter;\n      enrichedMetric.qoq_prior_value = priorValue;\n      enrichedMetric.qoq_change_percent = qoqChange;\n      enrichedMetric.qoq_change_absolute = metricData.value - priorValue;\n      enrichedMetric.qoq_trend = getTrendDirection(qoqChange);\n      enrichedMetric.qoq_significance = getSignificance(qoqChange);\n    }\n  }\n  \n  // Find YoY (Year over Year) comparison\n  // Assuming format like \"2024-Q1\" -> look for \"2023-Q1\"\n  const yearMatch = latestPeriod.match(/(\\d{4})/);\n  if (yearMatch) {\n    const currentYear = parseInt(yearMatch[1]);\n    const priorYear = currentYear - 1;\n    const yoyPeriod = latestPeriod.replace(currentYear.toString(), priorYear.toString());\n    \n    if (metricsByPeriod[yoyPeriod] && metricsByPeriod[yoyPeriod][metricName]) {\n      const priorValue = metricsByPeriod[yoyPeriod][metricName].value;\n      const yoyChange = calculateChange(metricData.value, priorValue);\n      \n      enrichedMetric.yoy_prior_period = yoyPeriod;\n      enrichedMetric.yoy_prior_value = priorValue;\n      enrichedMetric.yoy_change_percent = yoyChange;\n      enrichedMetric.yoy_change_absolute = metricData.value - priorValue;\n      enrichedMetric.yoy_trend = getTrendDirection(yoyChange);\n      enrichedMetric.yoy_significance = getSignificance(yoyChange);\n    }\n  }\n  \n  enrichedMetrics.push(enrichedMetric);\n}\n\n// Prepare summary for analysis\nconst summary = {\n  company_name: webhookData.company_name,\n  folder_id: webhookData.folder_id,\n  latest_period: latestPeriod,\n  latest_document: webhookData.document_name,\n  document_type: webhookData.document_type,\n  periods_analyzed: periods.length,\n  periods_available: periods,\n  metrics_with_trends: enrichedMetrics,\n  total_metrics: enrichedMetrics.length,\n  has_qoq_data: periods.length >= 2,\n  has_yoy_data: periods.length >= 5  // Rough estimate for YoY\n};\n\nconsole.log(`Calculated trends for ${enrichedMetrics.length} metrics`);\nconsole.log(`Periods analyzed: ${periods.length}`);\n\nreturn [{ json: summary }];"
       },
-      "id": "293faec6-2ab8-4622-9da1-738951da817b",
+      "id": "d0147f3d-4c4e-4a5f-bbd9-ccea2e64cdc0",
       "name": "Calculate Trends",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        224,
-        144
+        -672,
+        128
       ],
       "notes": "Calculates YoY and QoQ trends for all metrics. Groups data by period, compares current vs prior periods, and determines trend direction and significance."
     },
@@ -73,13 +73,13 @@
         },
         "options": {}
       },
-      "id": "546798c1-e969-42be-a72c-4df438c8e516",
+      "id": "a15e15c2-18fe-427e-a2e9-c907377bc8c4",
       "name": "Check Data Sufficiency",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        448,
-        144
+        -448,
+        128
       ],
       "notes": "Checks if we have at least 2 periods for trend analysis. TRUE path = generate report, FALSE path = insufficient data notification"
     },
@@ -102,13 +102,13 @@
           "temperature": 0.4
         }
       },
-      "id": "75c44496-98a7-49c6-bbf5-2d3aa29d961b",
+      "id": "8227b586-def7-4100-ba3e-eae5c416e271",
       "name": "Generate Investment Memo",
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        624,
-        -64
+        -272,
+        -80
       ],
       "credentials": {
         "openAiApi": {
@@ -134,13 +134,13 @@
         },
         "options": {}
       },
-      "id": "46d20ef0-e7c7-4449-ab51-4bbe38bb2878",
+      "id": "c3c538d6-5586-4155-8f02-990d86540211",
       "name": "Save Report to Google Drive",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        928,
-        -64
+        32,
+        -80
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -157,13 +157,13 @@
         "message": "=Investment Analysis Report Generated\n\nCompany: {{ $('Calculate Trends').item.json.company_name }}\nPeriod: {{ $('Calculate Trends').item.json.latest_period }}\nDocument: {{ $('Calculate Trends').item.json.latest_document }}\n\nPeriods Analyzed: {{ $('Calculate Trends').item.json.periods_analyzed }}\nMetrics Tracked: {{ $('Calculate Trends').item.json.total_metrics }}\n\nThe full investment analysis report has been generated and saved to Google Drive.\n\nView Report: {{ $('Save Report to Google Drive').item.json.webViewLink }}\n\n---\nGenerated by PE-Eval Analysis Engine\n{{ new Date().toLocaleString() }}",
         "options": {}
       },
-      "id": "a4257012-8162-482f-ada9-f9c4396ce544",
+      "id": "db7db766-7cf1-4173-aff1-ef8323e309ec",
       "name": "Send Success Notification",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        1120,
-        -64
+        224,
+        -80
       ],
       "webhookId": "651dc1fc-91cb-47fe-ba8f-fb37944d1359",
       "credentials": {
@@ -181,13 +181,13 @@
         "message": "=Insufficient Historical Data for Analysis\n\nCompany: {{ $('Webhook Trigger').item.json.body.company_name }}\nLatest Document: {{ $('Webhook Trigger').item.json.body.document_name }}\nLatest Period: {{ $('Webhook Trigger').item.json.body.latest_period }}\n\nPeriods Available: {{ $json.periods_analyzed }}\nRequired: At least 2 periods for trend analysis\n\nPlease upload more historical documents to enable comprehensive analysis.\n\n---\nPE-Eval Analysis Engine\n{{ new Date().toLocaleString() }}",
         "options": {}
       },
-      "id": "912ca9cd-2d94-492b-816e-7125b0d74e16",
+      "id": "e33f0caf-1b8f-4270-a63e-f7a8d422851e",
       "name": "Send Insufficient Data Alert",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        656,
-        160
+        -240,
+        144
       ],
       "webhookId": "ba0dc453-839c-490d-b58b-d66755f3f57d",
       "credentials": {
@@ -206,13 +206,13 @@
           "responseCode": 202
         }
       },
-      "id": "58feb02d-a3bf-4c80-a6e9-a3d6966feade",
+      "id": "78a3c7b1-e6b5-4114-a070-b3e3f6be8584",
       "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        0,
-        -48
+        -896,
+        -64
       ],
       "notes": "Immediately responds to Workflow 1 with 202 Accepted - analysis continues in background"
     }
@@ -302,7 +302,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "e4f52cce-e538-45d0-8aae-8808267a2a38",
+  "versionId": "16fd8725-057a-43f4-9ab1-4b0882b3c208",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0bbcba5101cb69b5f5f55ed71e6111b6bb22c473de47e383ddafffa0fd18f290"

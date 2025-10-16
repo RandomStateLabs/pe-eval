@@ -39,8 +39,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1376,
-        144
+        2368,
+        128
       ],
       "continueOnFail": true,
       "notes": "Fire-and-forget trigger to Workflow 2 for investment analysis"
@@ -102,7 +102,7 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        352,
+        336,
         144
       ],
       "credentials": {
@@ -123,8 +123,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        528,
-        144
+        1264,
+        128
       ],
       "notes": "Extracts text content from PDF, Excel, Word, PowerPoint files"
     },
@@ -144,7 +144,7 @@
         },
         "jsonOutput": true,
         "options": {
-          "maxTokens": 4000,
+          "maxTokens": 16000,
           "temperature": 0.2
         }
       },
@@ -153,8 +153,8 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        704,
-        144
+        1488,
+        128
       ],
       "credentials": {
         "openAiApi": {
@@ -166,15 +166,15 @@
     },
     {
       "parameters": {
-        "jsCode": "// NEW: Process dynamic metrics from improved AI prompt\n  const results = [];\n\n  for (const item of items) {\n    try {\n      // Parse AI response - handle different OpenAI node output structures\n      let aiResponse;\n\n      if (typeof item.json === 'string') {\n        aiResponse = JSON.parse(item.json);\n      } else if (item.json.message && item.json.message.content) {\n        const content = item.json.message.content;\n        aiResponse = typeof content === 'string' ? JSON.parse(content) : content;\n      } else if (item.json.response) {\n        aiResponse = typeof item.json.response === 'string'\n          ? JSON.parse(item.json.response)\n          : item.json.response;\n      } else {\n        aiResponse = item.json;\n      }\n\n      console.log('Parsed AI response:', JSON.stringify(aiResponse, null, 2));\n\n      // Extract document info\n      const docInfo = aiResponse.document_info || {};\n      const metrics = aiResponse.metrics_discovered || [];\n\n      if (metrics.length === 0) {\n        console.log('No metrics found in AI response');\n        results.push({\n          json: {\n            entity_id: 'NO_METRICS',\n            document_name: docInfo.document_name || 'Unknown',\n            metric_name: 'no_data',\n            value: 0,\n            error: 'No metrics discovered',\n            date_added: new Date().toISOString()\n          }\n        });\n      }\n\n      // Convert each metric to an EAV row for Google Sheets\n      for (const metric of metrics) {\n        const entityId = `${docInfo.company_name || 'Unknown'}_${metric.period || 'Unknown'}_${Date.now()}`;\n\n        const sheetRow = {\n          entity_id: entityId,\n          document_name: docInfo.document_name || 'Unknown',\n          company_name: docInfo.company_name || 'Unknown',\n          metric_name: metric.standardized_name || metric.raw_name,\n          raw_metric_name: metric.raw_name,\n          value: metric.value || 0,\n          unit: metric.unit || '',\n          period: metric.period || '',\n          confidence: metric.confidence || 0,\n          category: metric.category || '',\n          source_location: metric.source_location || '',\n          extraction_context: metric.extraction_context || '',\n          document_type: docInfo.document_type || '',\n          date_added: new Date().toISOString()\n        };\n\n        results.push({ json: sheetRow });\n        console.log(`Added row: ${metric.standardized_name} = ${metric.value} (${metric.period})`);\n      }\n\n    } catch (error) {\n      console.error('Error processing AI response:', error);\n      console.error('Raw item:', JSON.stringify(item.json, null, 2));\n\n      results.push({\n        json: {\n          entity_id: 'ERROR',\n          document_name: 'Processing Error',\n          metric_name: 'error',\n          value: 0,\n          error: error.message,\n          date_added: new Date().toISOString()\n        }\n      });\n    }\n  }\n\n  console.log(`Successfully prepared ${results.length} metric rows for Google Sheets`);\n  return results;"
+        "jsCode": "// FIXED: Process dynamic metrics with correct n8n OpenAI node handling\nconst results = [];\n\nfor (const item of items) {\n  try {\n    // Parse AI response - handle different OpenAI node output structures\n    let aiResponse;\n\n    // PRIORITY 1: n8n OpenAI node with jsonOutput=true\n    // When jsonOutput is enabled, the parsed JSON is directly in item.json\n    if (item.json && item.json.document_info && item.json.metrics_discovered) {\n      aiResponse = item.json;\n      console.log('✅ Using pre-parsed JSON from n8n OpenAI node (jsonOutput=true)');\n    }\n    // PRIORITY 2: Raw string response (manual parsing needed)\n    else if (typeof item.json === 'string') {\n      aiResponse = JSON.parse(item.json);\n      console.log('✅ Parsed JSON from string response');\n    }\n    // PRIORITY 3: Chat completion format with message.content\n    else if (item.json && item.json.message && item.json.message.content) {\n      const content = item.json.message.content;\n\n      // Handle OpenAI's response format - content might have markdown code blocks\n      if (typeof content === 'string') {\n        // Strip markdown code blocks if present (```json ... ``` or ``` ... ```)\n        const jsonMatch = content.match(/```json\\s*([\\s\\S]*?)\\s*```/) || content.match(/```\\s*([\\s\\S]*?)\\s*```/);\n        const cleanContent = jsonMatch ? jsonMatch[1].trim() : content.trim();\n\n        try {\n          aiResponse = JSON.parse(cleanContent);\n          console.log('✅ Parsed JSON from message.content');\n        } catch (parseError) {\n          console.error('❌ JSON parse error:', parseError.message);\n          console.error('Attempted to parse:', cleanContent.substring(0, 500));\n          throw new Error(`Failed to parse AI response: ${parseError.message}`);\n        }\n      } else {\n        aiResponse = content;\n      }\n    }\n    // PRIORITY 4: Response wrapper format\n    else if (item.json && item.json.response) {\n      aiResponse = typeof item.json.response === 'string'\n        ? JSON.parse(item.json.response)\n        : item.json.response;\n      console.log('✅ Parsed JSON from response wrapper');\n    }\n    // PRIORITY 5: Fallback - assume item.json is already correct\n    else {\n      aiResponse = item.json;\n      console.log('⚠️  Using item.json as-is (fallback)');\n    }\n\n    console.log('Parsed AI response:', JSON.stringify(aiResponse, null, 2));\n\n    // Extract document info\n    const docInfo = aiResponse.document_info || {};\n    const metrics = aiResponse.metrics_discovered || [];\n\n    if (metrics.length === 0) {\n      console.log('No metrics found in AI response');\n      results.push({\n        json: {\n          entity_id: 'NO_METRICS',\n          document_name: docInfo.document_name || 'Unknown',\n          metric_name: 'no_data',\n          value: 0,\n          error: 'No metrics discovered',\n          date_added: new Date().toISOString()\n        }\n      });\n      continue; // Skip to next item\n    }\n\n    // Convert each metric to an EAV row for Google Sheets\n    for (const metric of metrics) {\n      const entityId = `${docInfo.company_name || 'Unknown'}_${metric.period || 'Unknown'}_${Date.now()}`;\n\n      const sheetRow = {\n        entity_id: entityId,\n        document_name: docInfo.document_name || 'Unknown',\n        company_name: docInfo.company_name || 'Unknown',\n        metric_name: metric.standardized_name || metric.raw_name,\n        raw_metric_name: metric.raw_name,\n        value: metric.value || 0,\n        unit: metric.unit || '',\n        period: metric.period || '',\n        confidence: metric.confidence || 0,\n        category: metric.category || '',\n        source_location: metric.source_location || '',\n        extraction_context: metric.extraction_context || '',\n        document_type: docInfo.document_type || '',\n        date_added: new Date().toISOString()\n      };\n\n      results.push({ json: sheetRow });\n      console.log(`Added row: ${metric.standardized_name} = ${metric.value} (${metric.period})`);\n    }\n\n  } catch (error) {\n    console.error('Error processing AI response:', error);\n    console.error('Error stack:', error.stack);\n    \n    // Try to log the problematic content for debugging\n    try {\n      if (item.json && item.json.message && item.json.message.content) {\n        console.error('Problematic content preview:', item.json.message.content.substring(0, 1000));\n      } else {\n        console.error('Raw item structure:', JSON.stringify(item.json, null, 2).substring(0, 1000));\n      }\n    } catch (logError) {\n      console.error('Could not log raw item');\n    }\n\n    results.push({\n      json: {\n        entity_id: 'ERROR',\n        document_name: 'Processing Error',\n        metric_name: 'error',\n        value: 0,\n        error: error.message,\n        date_added: new Date().toISOString()\n      }\n    });\n  }\n}\n\nconsole.log(`Successfully prepared ${results.length} metric rows for Google Sheets`);\nreturn results;"
       },
       "id": "4add889d-6177-473c-896a-e8f83be0bb90",
       "name": "Prepare Sheet Data1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        992,
-        144
+        1952,
+        128
       ],
       "notes": "Formats validated metrics for Google Sheets storage"
     },
@@ -351,8 +351,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        1184,
-        144
+        2176,
+        128
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -361,6 +361,195 @@
         }
       },
       "notes": "Stores metrics in company-specific sheets with historical tracking"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "application/pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b14bac81-9c78-4dcb-94c0-542f8e60b87d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF Files"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1f6ac0f5-e9a6-4616-8e4c-3fda217b3f06",
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "DOCX Files"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        528,
+        144
+      ],
+      "id": "bfca06f5-5c86-4a83-b341-50b731baa106",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $(\"Convert to Google Doc\").item.json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain",
+              "drawingsToFormat": "application/pdf",
+              "slidesToFormat": "application/pdf",
+              "sheetsToFormat": "application/pdf"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1088,
+        368
+      ],
+      "id": "6d79d8f5-b18b-478c-8f99-ac92097dba88",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "EJIwyqqrzOtJ0lL9",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $(\"Convert to Google Doc\").item.json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "deletePermanently": true
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1552,
+        384
+      ],
+      "id": "e81c3671-10be-4c0c-8461-8040462047c2",
+      "name": "Cleanup Temp Doc",
+      "retryOnFail": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "EJIwyqqrzOtJ0lL9",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/drive/v3/files?uploadType=media",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "uploadType",
+              "value": "media"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        368
+      ],
+      "id": "5406f2cf-6ea9-4d38-b0f3-84513a10091c",
+      "name": "Upload DOCX to Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "EJIwyqqrzOtJ0lL9",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $json.id }}/copy",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"parents\": [\"1f3frJZYkM4acncJWF9ub0zOeDVIWfMBr\"],\n  \"mimeType\": \"application/vnd.google-apps.document\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        368
+      ],
+      "id": "7464e106-9b8f-4b78-a74d-c611813a49b5",
+      "name": "Convert to Google Doc",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "EJIwyqqrzOtJ0lL9",
+          "name": "Google Drive account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -380,7 +569,7 @@
       "main": [
         [
           {
-            "node": "Extract Text from File1",
+            "node": "Switch",
             "type": "main",
             "index": 0
           }
@@ -430,13 +619,69 @@
           }
         ]
       ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract Text from File1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upload DOCX to Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract Text from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup Temp Doc": {
+      "main": [
+        []
+      ]
+    },
+    "Upload DOCX to Drive": {
+      "main": [
+        [
+          {
+            "node": "Convert to Google Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to Google Doc": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "1c5113e0-8fb0-4d08-8405-be77a80beec0",
+  "versionId": "cd5544d1-2f2e-41d5-a88e-e8a43202baf8",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0bbcba5101cb69b5f5f55ed71e6111b6bb22c473de47e383ddafffa0fd18f290"

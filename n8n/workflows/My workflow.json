@@ -132,8 +132,9 @@
       "parameters": {
         "modelId": {
           "__rl": true,
-          "value": "gpt-4o",
-          "mode": "list"
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
         },
         "messages": {
           "values": [
@@ -144,7 +145,7 @@
         },
         "jsonOutput": true,
         "options": {
-          "maxTokens": 16000,
+          "maxTokens": 16384,
           "temperature": 0.2
         }
       },
@@ -221,16 +222,6 @@
               "removed": false
             },
             {
-              "id": "company_name",
-              "displayName": "company_name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
               "id": "metric_name",
               "displayName": "metric_name",
               "required": false,
@@ -241,8 +232,8 @@
               "removed": false
             },
             {
-              "id": "raw_metric_name",
-              "displayName": "raw_metric_name",
+              "id": "value",
+              "displayName": "value",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -251,8 +242,38 @@
               "removed": false
             },
             {
-              "id": "value",
-              "displayName": "value",
+              "id": "error",
+              "displayName": "error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "date_added",
+              "displayName": "date_added",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "raw_metric_name",
+              "displayName": "raw_metric_name",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -323,16 +344,6 @@
             {
               "id": "document_type",
               "displayName": "document_type",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "date_added",
-              "displayName": "date_added",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -681,7 +692,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "cd5544d1-2f2e-41d5-a88e-e8a43202baf8",
+  "versionId": "c9255d8d-ddd0-4c13-b746-753c24d7c3ad",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0bbcba5101cb69b5f5f55ed71e6111b6bb22c473de47e383ddafffa0fd18f290"

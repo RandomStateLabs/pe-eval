@@ -4,7 +4,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://localhost:5678/webhook/analyze-company",
+        "url": "https://vantagemeridian.app.n8n.cloud/webhook-test/analyze-company",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
@@ -23,10 +23,6 @@
             {
               "name": "document_type",
               "value": "={{ $json.document_type }}"
-            },
-            {
-              "name": "metrics_count",
-              "value": "={{ $items().length }}"
             }
           ]
         },
@@ -42,6 +38,7 @@
         2368,
         128
       ],
+      "executeOnce": true,
       "continueOnFail": true,
       "notes": "Fire-and-forget trigger to Workflow 2 for investment analysis"
     },
@@ -692,7 +689,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "c9255d8d-ddd0-4c13-b746-753c24d7c3ad",
+  "versionId": "926f14de-f92d-4018-97e8-cf42a7b24e3c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0bbcba5101cb69b5f5f55ed71e6111b6bb22c473de47e383ddafffa0fd18f290"

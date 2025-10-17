@@ -95,7 +95,8 @@
         "modelId": {
           "__rl": true,
           "value": "gpt-4o",
-          "mode": "list"
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
         },
         "messages": {
           "values": [
@@ -170,14 +171,14 @@
     {
       "parameters": {
         "sendTo": "yandi@vantagemeridian.io",
-        "subject": "= =Investment Analysis: {{ $('Calculate Trends').item.json.company_name }} - {{ $('Calculate Trends').item.json.latest_period }}",
-        "message": "TEST",
+        "subject": "=Investment Analysis: {{ $('Calculate Trends').item.json.company_name }} - {{ $('Calculate Trends').item.json.latest_period }}",
+        "message": "={{ $json.data }}",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
       "position": [
-        80,
+        288,
         -80
       ],
       "id": "273efa17-ea0b-4244-a643-08930b1158ae",
@@ -189,6 +190,21 @@
           "name": "Gmail account"
         }
       }
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.message.content }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -80
+      ],
+      "id": "d1a15643-0fba-4c1f-a032-49c610470723",
+      "name": "Markdown"
     }
   ],
   "pinData": {},
@@ -253,6 +269,17 @@
       "main": [
         [
           {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
             "node": "Send a message",
             "type": "main",
             "index": 0
@@ -265,7 +292,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d2f86269-8918-44df-8e60-06aef7965314",
+  "versionId": "4ad6089c-0abe-476e-8cfc-0dceac12d507",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0bbcba5101cb69b5f5f55ed71e6111b6bb22c473de47e383ddafffa0fd18f290"

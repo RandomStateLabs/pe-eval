@@ -30,13 +30,13 @@
           "timeout": 5000
         }
       },
-      "id": "784a256e-cda2-4f59-b9d5-fb507a60210c",
+      "id": "d2bab952-a5d2-45b9-875b-b6687ce94619",
       "name": "Trigger Analysis Workflow",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2368,
-        128
+        48,
+        320
       ],
       "executeOnce": true,
       "continueOnFail": true,
@@ -54,19 +54,23 @@
         "triggerOn": "specificFolder",
         "folderToWatch": {
           "__rl": true,
-          "value": "https://drive.google.com/drive/u/3/folders/1hLHsNf61aREVHin_8zek3AdonpWHwKN5",
-          "mode": "url"
+          "value": "1Y3TItXbF9hGOuDrytrH6EHj1QhxL_y3a",
+          "mode": "list",
+          "cachedResultName": "Finacials",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Y3TItXbF9hGOuDrytrH6EHj1QhxL_y3a"
         },
         "event": "fileCreated",
-        "options": {}
+        "options": {
+          "fileType": "all"
+        }
       },
-      "id": "ba80d8dd-3d6a-48fc-b14c-6a7a1b6f247a",
+      "id": "c226018e-2602-4a15-a67b-1eb17f5ebfc8",
       "name": "Google Drive Trigger1",
       "type": "n8n-nodes-base.googleDriveTrigger",
       "typeVersion": 1,
       "position": [
-        144,
-        144
+        -2176,
+        336
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -94,13 +98,13 @@
           }
         }
       },
-      "id": "b4e8dfec-952a-467c-aff9-d4a0c6042396",
+      "id": "3d6f12ae-6dee-4622-8bf6-9bb1d6ce13c7",
       "name": "Download File from Drive1",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        336,
-        144
+        -1984,
+        336
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -113,15 +117,16 @@
     {
       "parameters": {
         "operation": "text",
+        "destinationKey": "text",
         "options": {}
       },
-      "id": "ff3e0c67-a1a2-4071-aa4a-a795998fdf2e",
+      "id": "e9253662-da1a-4724-b69f-634932c6b9bf",
       "name": "Extract Text from File1",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1,
       "position": [
-        1264,
-        128
+        -1104,
+        288
       ],
       "notes": "Extracts text content from PDF, Excel, Word, PowerPoint files"
     },
@@ -136,7 +141,7 @@
         "messages": {
           "values": [
             {
-              "content": "={{ $json.data }}\nYou are a financial document analysis expert. Analyze the following document and extract ALL financial metrics, KPIs, and data points you can find.\n\n  IMPORTANT: Do not limit yourself to predefined metrics. Extract any financial data that appears, even if you've never seen that metric type before.\n\n  PHASE 1 - DOCUMENT UNDERSTANDING:\n  First, identify:\n  - Document type (income statement, balance sheet, investor deck, etc.)\n  - Company name\n  - Time period(s) covered\n  - Currency used\n\n  PHASE 2 - COMPREHENSIVE METRIC DISCOVERY:\n  Scan the entire document and identify ALL potential financial metrics including but not limited to:\n  - Revenue metrics (total revenue, recurring revenue, revenue per customer, etc.)\n  - Profitability metrics (EBITDA, gross margin, net income, etc.)\n  - Growth metrics (YoY growth, quarter growth, CAGR, etc.)\n  - Customer metrics (customer count, CAC, LTV, churn rate, etc.)\n  - Operational metrics (burn rate, runway, headcount, etc.)\n  - Valuation metrics (valuation, price per share, market cap, etc.)\n  - Ratios and percentages (margins, conversion rates, retention rates, etc.)\n  - Any other financial data points you discover\n\n  PHASE 3 - EXTRACTION WITH CONFIDENCE:\n  For each metric found, extract:\n  - Exact name as it appears in the document\n  - Standardized/normalized name (use common financial terminology)\n  - Numeric value only (convert text like \"10M\" to 10000000)\n  - Unit (USD, EUR, %, ratio, count, etc.)\n  - Time period this metric represents\n  - Your confidence level (0.0 to 1.0) based on clarity and context\n  - Source location (page number, section, table name if applicable)\n  - Brief context (surrounding text that helped you identify this metric)\n\n  PHASE 4 - OUTPUT FORMAT:\n  Return a JSON object with this exact structure:\n\n  {\n    \"document_info\": {\n      \"document_name\": \"exact filename or title\",\n      \"company_name\": \"company name found in document\",\n      \"document_type\": \"income_statement|balance_sheet|investor_deck|financial_report|other\",\n      \"primary_currency\": \"USD|EUR|GBP|etc\",\n      \"periods_covered\": [\"2024-Q1\", \"2024-Q2\"] // or whatever periods you find\n    },\n    \"metrics_discovered\": [\n      {\n        \"raw_name\": \"Total Revenue\", // exactly as found in document\n        \"standardized_name\": \"revenue\", // normalized name using standard terminology\n        \"category\": \"revenue|expense|ratio|count|growth_rate|margin|other\",\n        \"value\": 10000000, // numeric only, no text\n        \"unit\": \"USD\", // currency, %, ratio, count, etc.\n        \"period\": \"2024-Q1\", // specific period this metric represents\n        \"confidence\": 0.95, // your confidence level 0.0-1.0\n        \"source_location\": \"page 3, Income Statement table\",\n        \"extraction_context\": \"Q1 2024 Total Revenue: $10.0M (up 15% YoY)\"\n      },\n      {\n        \"raw_name\": \"Customer Acquisition Cost\",\n        \"standardized_name\": \"customer_acquisition_cost\",\n        \"category\": \"ratio\",\n        \"value\": 125.50,\n        \"unit\": \"USD\",\n        \"period\": \"2024-Q1\",\n        \"confidence\": 0.87,\n        \"source_location\": \"page 7, Key Metrics section\",\n        \"extraction_context\": \"Blended CAC decreased to $125.50 in Q1\"\n      }\n    ]\n  }\n\n  CRITICAL INSTRUCTIONS:\n  1. Extract EVERY financial metric you find, even unusual or company-specific ones\n  2. Use consistent standardized names (revenue, not \"total_revenue\" or \"sales\")\n  3. Convert all values to pure numbers (no commas, dollar signs, or text)\n  4. Be conservative with confidence scores - only use 0.9+ for very clear extractions\n  5. If you find the same metric for multiple periods, create separate entries\n  6. If a value seems unreasonable, still extract it but lower the confidence score\n\n  Return only the JSON object, no additional text."
+              "content": "={{ $json.text }}\nYou are a financial document analysis expert. Analyze the following document and extract ALL financial metrics, KPIs, and data points you can find.\n\n  IMPORTANT: Do not limit yourself to predefined metrics. Extract any financial data that appears, even if you've never seen that metric type before.\n\n  PHASE 1 - DOCUMENT UNDERSTANDING:\n  First, identify:\n  - Document type (income statement, balance sheet, investor deck, etc.)\n  - Company name\n  - Time period(s) covered\n  - Currency used\n\n  PHASE 2 - COMPREHENSIVE METRIC DISCOVERY:\n  Scan the entire document and identify ALL potential financial metrics including but not limited to:\n  - Revenue metrics (total revenue, recurring revenue, revenue per customer, etc.)\n  - Profitability metrics (EBITDA, gross margin, net income, etc.)\n  - Growth metrics (YoY growth, quarter growth, CAGR, etc.)\n  - Customer metrics (customer count, CAC, LTV, churn rate, etc.)\n  - Operational metrics (burn rate, runway, headcount, etc.)\n  - Valuation metrics (valuation, price per share, market cap, etc.)\n  - Ratios and percentages (margins, conversion rates, retention rates, etc.)\n  - Any other financial data points you discover\n\n  PHASE 3 - EXTRACTION WITH CONFIDENCE:\n  For each metric found, extract:\n  - Exact name as it appears in the document\n  - Standardized/normalized name (use common financial terminology)\n  - Numeric value only (convert text like \"10M\" to 10000000)\n  - Unit (USD, EUR, %, ratio, count, etc.)\n  - Time period this metric represents\n  - Your confidence level (0.0 to 1.0) based on clarity and context\n  - Source location (page number, section, table name if applicable)\n  - Brief context (surrounding text that helped you identify this metric)\n\n  PHASE 4 - OUTPUT FORMAT:\n  Return a JSON object with this exact structure:\n\n  {\n    \"document_info\": {\n      \"document_name\": \"exact filename or title\",\n      \"company_name\": \"company name found in document\",\n      \"document_type\": \"income_statement|balance_sheet|investor_deck|financial_report|other\",\n      \"primary_currency\": \"USD|EUR|GBP|etc\",\n      \"periods_covered\": [\"2024-Q1\", \"2024-Q2\"] // or whatever periods you find\n    },\n    \"metrics_discovered\": [\n      {\n        \"raw_name\": \"Total Revenue\", // exactly as found in document\n        \"standardized_name\": \"revenue\", // normalized name using standard terminology\n        \"category\": \"revenue|expense|ratio|count|growth_rate|margin|other\",\n        \"value\": 10000000, // numeric only, no text\n        \"unit\": \"USD\", // currency, %, ratio, count, etc.\n        \"period\": \"2024-Q1\", // specific period this metric represents\n        \"confidence\": 0.95, // your confidence level 0.0-1.0\n        \"source_location\": \"page 3, Income Statement table\",\n        \"extraction_context\": \"Q1 2024 Total Revenue: $10.0M (up 15% YoY)\"\n      },\n      {\n        \"raw_name\": \"Customer Acquisition Cost\",\n        \"standardized_name\": \"customer_acquisition_cost\",\n        \"category\": \"ratio\",\n        \"value\": 125.50,\n        \"unit\": \"USD\",\n        \"period\": \"2024-Q1\",\n        \"confidence\": 0.87,\n        \"source_location\": \"page 7, Key Metrics section\",\n        \"extraction_context\": \"Blended CAC decreased to $125.50 in Q1\"\n      }\n    ]\n  }\n\n  CRITICAL INSTRUCTIONS:\n  1. Extract EVERY financial metric you find, even unusual or company-specific ones\n  2. Use consistent standardized names (revenue, not \"total_revenue\" or \"sales\")\n  3. Convert all values to pure numbers (no commas, dollar signs, or text)\n  4. Be conservative with confidence scores - only use 0.9+ for very clear extractions\n  5. If you find the same metric for multiple periods, create separate entries\n  6. If a value seems unreasonable, still extract it but lower the confidence score\n\n  Return only the JSON object, no additional text."
             }
           ]
         },
@@ -146,13 +151,13 @@
           "temperature": 0.2
         }
       },
-      "id": "245812f7-8bd7-403d-b62a-71a26606244e",
+      "id": "7e168edf-58b0-410b-9cf8-01b9ab10556c",
       "name": "AI Validation (OpenAI)1",
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        1488,
-        128
+        -832,
+        320
       ],
       "credentials": {
         "openAiApi": {
@@ -166,13 +171,13 @@
       "parameters": {
         "jsCode": "// FIXED: Process dynamic metrics with correct n8n OpenAI node handling\nconst results = [];\n\nfor (const item of items) {\n  try {\n    // Parse AI response - handle different OpenAI node output structures\n    let aiResponse;\n\n    // PRIORITY 1: n8n OpenAI node with jsonOutput=true\n    // When jsonOutput is enabled, the parsed JSON is directly in item.json\n    if (item.json && item.json.document_info && item.json.metrics_discovered) {\n      aiResponse = item.json;\n      console.log('✅ Using pre-parsed JSON from n8n OpenAI node (jsonOutput=true)');\n    }\n    // PRIORITY 2: Raw string response (manual parsing needed)\n    else if (typeof item.json === 'string') {\n      aiResponse = JSON.parse(item.json);\n      console.log('✅ Parsed JSON from string response');\n    }\n    // PRIORITY 3: Chat completion format with message.content\n    else if (item.json && item.json.message && item.json.message.content) {\n      const content = item.json.message.content;\n\n      // Handle OpenAI's response format - content might have markdown code blocks\n      if (typeof content === 'string') {\n        // Strip markdown code blocks if present (```json ... ``` or ``` ... ```)\n        const jsonMatch = content.match(/```json\\s*([\\s\\S]*?)\\s*```/) || content.match(/```\\s*([\\s\\S]*?)\\s*```/);\n        const cleanContent = jsonMatch ? jsonMatch[1].trim() : content.trim();\n\n        try {\n          aiResponse = JSON.parse(cleanContent);\n          console.log('✅ Parsed JSON from message.content');\n        } catch (parseError) {\n          console.error('❌ JSON parse error:', parseError.message);\n          console.error('Attempted to parse:', cleanContent.substring(0, 500));\n          throw new Error(`Failed to parse AI response: ${parseError.message}`);\n        }\n      } else {\n        aiResponse = content;\n      }\n    }\n    // PRIORITY 4: Response wrapper format\n    else if (item.json && item.json.response) {\n      aiResponse = typeof item.json.response === 'string'\n        ? JSON.parse(item.json.response)\n        : item.json.response;\n      console.log('✅ Parsed JSON from response wrapper');\n    }\n    // PRIORITY 5: Fallback - assume item.json is already correct\n    else {\n      aiResponse = item.json;\n      console.log('⚠️  Using item.json as-is (fallback)');\n    }\n\n    console.log('Parsed AI response:', JSON.stringify(aiResponse, null, 2));\n\n    // Extract document info\n    const docInfo = aiResponse.document_info || {};\n    const metrics = aiResponse.metrics_discovered || [];\n\n    if (metrics.length === 0) {\n      console.log('No metrics found in AI response');\n      results.push({\n        json: {\n          entity_id: 'NO_METRICS',\n          document_name: docInfo.document_name || 'Unknown',\n          metric_name: 'no_data',\n          value: 0,\n          error: 'No metrics discovered',\n          date_added: new Date().toISOString()\n        }\n      });\n      continue; // Skip to next item\n    }\n\n    // Convert each metric to an EAV row for Google Sheets\n    for (const metric of metrics) {\n      const entityId = `${docInfo.company_name || 'Unknown'}_${metric.period || 'Unknown'}_${Date.now()}`;\n\n      const sheetRow = {\n        entity_id: entityId,\n        document_name: docInfo.document_name || 'Unknown',\n        company_name: docInfo.company_name || 'Unknown',\n        metric_name: metric.standardized_name || metric.raw_name,\n        raw_metric_name: metric.raw_name,\n        value: metric.value || 0,\n        unit: metric.unit || '',\n        period: metric.period || '',\n        confidence: metric.confidence || 0,\n        category: metric.category || '',\n        source_location: metric.source_location || '',\n        extraction_context: metric.extraction_context || '',\n        document_type: docInfo.document_type || '',\n        date_added: new Date().toISOString()\n      };\n\n      results.push({ json: sheetRow });\n      console.log(`Added row: ${metric.standardized_name} = ${metric.value} (${metric.period})`);\n    }\n\n  } catch (error) {\n    console.error('Error processing AI response:', error);\n    console.error('Error stack:', error.stack);\n    \n    // Try to log the problematic content for debugging\n    try {\n      if (item.json && item.json.message && item.json.message.content) {\n        console.error('Problematic content preview:', item.json.message.content.substring(0, 1000));\n      } else {\n        console.error('Raw item structure:', JSON.stringify(item.json, null, 2).substring(0, 1000));\n      }\n    } catch (logError) {\n      console.error('Could not log raw item');\n    }\n\n    results.push({\n      json: {\n        entity_id: 'ERROR',\n        document_name: 'Processing Error',\n        metric_name: 'error',\n        value: 0,\n        error: error.message,\n        date_added: new Date().toISOString()\n      }\n    });\n  }\n}\n\nconsole.log(`Successfully prepared ${results.length} metric rows for Google Sheets`);\nreturn results;"
       },
-      "id": "4add889d-6177-473c-896a-e8f83be0bb90",
+      "id": "f7185106-5db6-4a50-ab06-f79884ddc92e",
       "name": "Prepare Sheet Data1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1952,
-        128
+        -368,
+        320
       ],
       "notes": "Formats validated metrics for Google Sheets storage"
     },
@@ -354,13 +359,13 @@
         },
         "options": {}
       },
-      "id": "835a9ee2-c309-4cc2-8e6d-aa914bd8eba6",
+      "id": "8dcef783-43b3-46ce-9337-978c42794b2e",
       "name": "Update Google Sheet1",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        2176,
-        128
+        -144,
+        320
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -422,6 +427,81 @@
               },
               "renameOutput": true,
               "outputKey": "DOCX Files"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "160a9d15-c1e1-41cd-965e-a0e68ba4a543",
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "application/vnd.google-apps.document",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Google Docs"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "877bd9fc-f2c4-4b54-979c-9a479bf5f30b",
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "text/csv",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CSV Files"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a8c3f2e1-9d4b-4a5c-8e7f-1b2c3d4e5f6g",
+                    "leftValue": "={{ $json.mimeType }}",
+                    "rightValue": "application/vnd.google-apps.spreadsheet",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Google Sheets"
             }
           ]
         },
@@ -430,10 +510,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        528,
-        144
+        -1792,
+        336
       ],
-      "id": "bfca06f5-5c86-4a83-b341-50b731baa106",
+      "id": "b9cd2f47-09a4-4af1-980c-a384bfea667f",
       "name": "Switch"
     },
     {
@@ -458,10 +538,10 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        1088,
-        368
+        -1280,
+        288
       ],
-      "id": "6d79d8f5-b18b-478c-8f99-ac92097dba88",
+      "id": "b68bc54d-e9fd-412b-993c-9ed5af04fd8f",
       "name": "Download file",
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -485,10 +565,10 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        1552,
-        384
+        -768,
+        576
       ],
-      "id": "e81c3671-10be-4c0c-8461-8040462047c2",
+      "id": "1342a9a1-72cc-4318-9ca9-48fe78662246",
       "name": "Cleanup Temp Doc",
       "retryOnFail": true,
       "credentials": {
@@ -521,10 +601,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        720,
-        368
+        -1536,
+        288
       ],
-      "id": "5406f2cf-6ea9-4d38-b0f3-84513a10091c",
+      "id": "4525293b-8591-418a-93e9-a26afa6d4f92",
       "name": "Upload DOCX to Drive",
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -547,10 +627,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        928,
-        368
+        -1408,
+        288
       ],
-      "id": "7464e106-9b8f-4b78-a74d-c611813a49b5",
+      "id": "97b8c8b2-b64f-4595-b823-27f79dd8bd40",
       "name": "Convert to Google Doc",
       "credentials": {
         "googleDriveOAuth2Api": {
@@ -558,6 +638,22 @@
           "name": "Google Drive account"
         }
       }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "=data",
+        "options": {}
+      },
+      "id": "eebad74b-0436-4238-bcbd-6066985c19db",
+      "name": "Extract Text from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1312,
+        96
+      ],
+      "notes": "Extracts text content from PDF, Excel, Word, PowerPoint files"
     }
   ],
   "pinData": {},
@@ -632,7 +728,7 @@
       "main": [
         [
           {
-            "node": "Extract Text from File1",
+            "node": "Extract Text from File",
             "type": "main",
             "index": 0
           }
@@ -643,7 +739,16 @@
             "type": "main",
             "index": 0
           }
-        ]
+        ],
+        [
+          {
+            "node": "Extract Text from File1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        []
       ]
     },
     "Download file": {
@@ -655,11 +760,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "Cleanup Temp Doc": {
-      "main": [
-        []
       ]
     },
     "Upload DOCX to Drive": {
@@ -683,13 +783,24 @@
           }
         ]
       ]
+    },
+    "Extract Text from File": {
+      "main": [
+        [
+          {
+            "node": "AI Validation (OpenAI)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "926f14de-f92d-4018-97e8-cf42a7b24e3c",
+  "versionId": "7e727e75-3c69-428c-9f95-6d85f1f4d2e7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0bbcba5101cb69b5f5f55ed71e6111b6bb22c473de47e383ddafffa0fd18f290"
